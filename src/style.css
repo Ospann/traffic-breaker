@@ -42,7 +42,6 @@ body {
 
 .stage__ui {
   position: absolute;
-  inset: 0;
   color: #f2f4ff;
 }
 

@@ -19,3 +19,6 @@ Contested game-design and technical decisions. Each one can be revisited.
 - **Quitting to the menu from pause** sends `levelFail` because the run started with `levelStart`.
 - **Garage.** The state machine has the state, but there is no button until stage 4. Shift (shield) does nothing until stage 3.
 - **Debug.** `?debug=1` shows the overlay (fps, draw calls, triangles, quality level). The F key fills the thrust meter.
+- **Breaker's look.** A low two-seat electric roadster: long nose with no grille, raked wraparound windshield, open cockpit with roll hoops, rear fender flares, thin headlights and a full-width taillight. Following the brief, it does not copy the body of any real car (including Tesla).
+- **Wide screens (desktop).** The canvas fills the whole window. The camera keeps its vertical field of view and opens up horizontally, so you see more city on the sides. The UI stays a centred 9:16 column. Gameplay doesn't change: obstacles are still only on the 3 lanes.
+- **Pixel budget.** The render is capped at 2.4M pixels (DPR drops on large monitors). On top of that, the governor lowers quality when fps falls.

@@ -81,6 +81,7 @@ export class WorldView {
     this.fog.near = level.viewDistance * 0.25;
     this.fog.far = level.viewDistance;
     this.rig.setFar(level.viewDistance);
+    this.city.setViewDistance(level.viewDistance);
     this.particles.emissionScale = level.particles;
   }
 
@@ -167,7 +168,7 @@ export class WorldView {
       travelled = session.distance - this.lastDistance;
       this.lastDistance = session.distance;
     }
-    this.city.update(travelled);
+    this.city.update(travelled, dt);
 
     const motion = session?.motion;
     const carX = running && motion ? motion.x : 0;

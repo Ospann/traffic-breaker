@@ -11,6 +11,7 @@ export class Stage {
   readonly ui: HTMLDivElement;
   readonly renderer: WebGLRenderer;
   size: StageSize = { width: gameConfig.width, height: gameConfig.height };
+  private uiWidth: number = gameConfig.width;
   private pixelRatioCap: number = gameConfig.maxPixelRatio;
   private readonly listeners = new Set<(size: StageSize) => void>();
 
@@ -38,7 +39,7 @@ export class Stage {
   }
 
   get logicalScale(): number {
-    return gameConfig.width / this.size.width;
+    return gameConfig.width / this.uiWidth;
   }
 
   onResize(listener: (size: StageSize) => void): void {
@@ -55,19 +56,24 @@ export class Stage {
     const viewW = window.innerWidth;
     const viewH = window.innerHeight;
     const baseAspect = gameConfig.width / gameConfig.height;
-    const width = Math.floor(Math.min(viewW, viewH * baseAspect));
-    const height = Math.floor(Math.min(viewH, width * gameConfig.maxAspect));
-    this.size = { width, height };
-    this.element.style.width = `${width}px`;
-    this.element.style.height = `${height}px`;
-    this.element.style.setProperty('--u', `${width / gameConfig.width}px`);
-    const ratio = Math.min(
-      window.devicePixelRatio || 1,
-      gameConfig.maxPixelRatio,
-      this.pixelRatioCap,
+    const uiWidth = Math.floor(Math.min(viewW, viewH * baseAspect));
+    const uiHeight = Math.floor(Math.min(viewH, uiWidth * gameConfig.maxAspect));
+    this.uiWidth = uiWidth;
+    this.size = { width: viewW, height: viewH };
+    this.element.style.width = `${viewW}px`;
+    this.element.style.height = `${viewH}px`;
+    this.ui.style.width = `${uiWidth}px`;
+    this.ui.style.height = `${uiHeight}px`;
+    this.ui.style.left = `${Math.floor((viewW - uiWidth) / 2)}px`;
+    this.ui.style.top = `${Math.floor((viewH - uiHeight) / 2)}px`;
+    this.element.style.setProperty('--u', `${uiWidth / gameConfig.width}px`);
+    const budget = Math.sqrt(gameConfig.maxRenderPixels / Math.max(viewW * viewH, 1));
+    const ratio = Math.max(
+      0.5,
+      Math.min(window.devicePixelRatio || 1, gameConfig.maxPixelRatio, this.pixelRatioCap, budget),
     );
     this.renderer.setPixelRatio(ratio);
-    this.renderer.setSize(width, height, false);
+    this.renderer.setSize(viewW, viewH, false);
     for (const listener of this.listeners) listener(this.size);
   };
 }
