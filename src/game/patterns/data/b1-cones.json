@@ -1,0 +1,38 @@
+{
+  "id": "b1-cones",
+  "length": 60,
+  "difficulty": 1,
+  "tags": ["breather", "deco"],
+  "obstacles": [
+    {
+      "type": "cone",
+      "lane": 0,
+      "z": 20,
+      "offsetX": -0.8
+    },
+    {
+      "type": "cone",
+      "lane": 0,
+      "z": 26,
+      "offsetX": -0.8
+    },
+    {
+      "type": "hologram",
+      "lane": 2,
+      "z": 35
+    },
+    {
+      "type": "cone",
+      "lane": 1,
+      "z": 45
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 10,
+      "count": 10
+    }
+  ]
+}

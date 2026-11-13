@@ -1,5 +1,6 @@
-import { player, track as trackBalance } from '../balance';
+import { track as trackBalance } from '../balance';
 import type { Pattern } from '../patterns/pattern-schema';
+import { supportAt, type Support } from '../sim/collision';
 import { laneX } from '../sim/player-motion';
 import { obstacleSpecs, type ObstacleSpec, type ObstacleType } from './entities';
 import { Pool } from './pool';
@@ -19,7 +20,7 @@ export interface TrackEntity {
 }
 
 export interface PatternSource {
-  next(): Pattern;
+  next(elapsedSec: number): Pattern;
   reset(): void;
 }
 
@@ -35,6 +36,7 @@ export class Track {
   readonly active: TrackEntity[] = [];
   private readonly pool: Pool<TrackEntity>;
   private cursor = RUNWAY;
+  private readonly support: Support = { height: 0, ramp: false };
   listener: TrackListener | null = null;
 
   constructor(private readonly source: PatternSource) {
@@ -75,7 +77,7 @@ export class Track {
     this.cursor = Math.max(fromD, this.cursor);
   }
 
-  update(dt: number, speed: number): void {
+  update(dt: number, speed: number, elapsedSec = 0): void {
     const travelled = speed * dt;
     this.cursor -= travelled;
     for (let i = this.active.length - 1; i >= 0; i -= 1) {
@@ -90,22 +92,18 @@ export class Track {
       }
     }
     while (this.cursor < trackBalance.spawnAheadDistance) {
-      const pattern = this.source.next();
+      const pattern = this.source.next(elapsedSec);
       this.spawnPattern(pattern, this.cursor, speed);
       this.cursor += pattern.length;
     }
   }
 
   supportHeight(px: number, py: number): number {
-    let ground = 0;
-    for (const entity of this.active) {
-      const spec = entity.spec;
-      if (!spec.roof) continue;
-      if (Math.abs(px - entity.x) > spec.halfWidth) continue;
-      if (entity.d > 0 || entity.d + spec.length < 0) continue;
-      if (py >= spec.y1 - player.roofStepTolerance) ground = Math.max(ground, spec.y1);
-    }
-    return ground;
+    return supportAt(this.active, px, py, this.support).height;
+  }
+
+  supportAt(px: number, py: number): Support {
+    return supportAt(this.active, px, py, this.support);
   }
 
   private spawnPattern(pattern: Pattern, start: number, speed: number): void {

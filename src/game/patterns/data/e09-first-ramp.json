@@ -1,0 +1,33 @@
+{
+  "id": "e09-first-ramp",
+  "length": 70,
+  "difficulty": 1,
+  "tags": ["ramp", "roof"],
+  "obstacles": [
+    {
+      "type": "ramp",
+      "lane": 1,
+      "z": 20
+    },
+    {
+      "type": "truck",
+      "lane": 1,
+      "z": 27
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 28,
+      "count": 4,
+      "y": 3.9
+    },
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 20,
+      "count": 6
+    }
+  ]
+}

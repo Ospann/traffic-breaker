@@ -1,0 +1,53 @@
+{
+  "id": "h10-mixed",
+  "length": 75,
+  "difficulty": 3,
+  "tags": ["mixed"],
+  "obstacles": [
+    {
+      "type": "highSign",
+      "lane": 0,
+      "z": 16
+    },
+    {
+      "type": "midBarrier",
+      "lane": 0,
+      "z": 32
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 0,
+      "z": 48
+    },
+    {
+      "type": "truck",
+      "lane": 1,
+      "z": 20
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 2,
+      "z": 16
+    },
+    {
+      "type": "oncoming",
+      "lane": 2,
+      "z": 40
+    },
+    {
+      "type": "highSign",
+      "lane": 2,
+      "z": 60
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 0,
+      "z": 43,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    }
+  ]
+}

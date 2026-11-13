@@ -1,0 +1,36 @@
+{
+  "id": "m09-signs-staggered",
+  "length": 75,
+  "difficulty": 2,
+  "tags": ["duck", "jump"],
+  "obstacles": [
+    {
+      "type": "highSign",
+      "lane": 0,
+      "z": 20
+    },
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 30
+    },
+    {
+      "type": "highSign",
+      "lane": 2,
+      "z": 40
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 0,
+      "z": 55
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 14,
+      "count": 6
+    }
+  ]
+}

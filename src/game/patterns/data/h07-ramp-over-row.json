@@ -1,0 +1,53 @@
+{
+  "id": "h07-ramp-over-row",
+  "length": 65,
+  "difficulty": 3,
+  "tags": ["ramp", "air", "jump"],
+  "obstacles": [
+    {
+      "type": "ramp",
+      "lane": 1,
+      "z": 15
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 0,
+      "z": 30
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 30
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 2,
+      "z": 30
+    },
+    {
+      "type": "midBarrier",
+      "lane": 0,
+      "z": 40
+    },
+    {
+      "type": "midBarrier",
+      "lane": 1,
+      "z": 40
+    },
+    {
+      "type": "midBarrier",
+      "lane": 2,
+      "z": 40
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 23,
+      "count": 8,
+      "spacing": 2.5,
+      "y": 4.2
+    }
+  ]
+}

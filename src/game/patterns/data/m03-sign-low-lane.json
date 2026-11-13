@@ -1,0 +1,49 @@
+{
+  "id": "m03-sign-low-lane",
+  "length": 90,
+  "difficulty": 2,
+  "tags": ["duck", "jump"],
+  "obstacles": [
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 20
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 45
+    },
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 70
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 16
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 40
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 40,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    },
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 16,
+      "count": 6
+    }
+  ]
+}

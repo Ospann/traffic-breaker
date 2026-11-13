@@ -1,0 +1,60 @@
+{
+  "id": "m02-ramp-chain",
+  "length": 75,
+  "difficulty": 2,
+  "tags": ["ramp", "roof", "chain"],
+  "obstacles": [
+    {
+      "type": "ramp",
+      "lane": 0,
+      "z": 16
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 23
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 36
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 49
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 40
+    },
+    {
+      "type": "midBarrier",
+      "lane": 1,
+      "z": 60
+    },
+    {
+      "type": "bus",
+      "lane": 2,
+      "z": 30
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 24,
+      "count": 12,
+      "y": 3.9
+    },
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 35,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    }
+  ]
+}

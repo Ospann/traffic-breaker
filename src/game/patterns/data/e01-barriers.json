@@ -1,0 +1,51 @@
+{
+  "id": "e01-barriers",
+  "length": 80,
+  "difficulty": 1,
+  "tags": ["barrier"],
+  "obstacles": [
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 20
+    },
+    {
+      "type": "midBarrier",
+      "lane": 0,
+      "z": 45
+    },
+    {
+      "type": "highSign",
+      "lane": 2,
+      "z": 45
+    },
+    {
+      "type": "cone",
+      "lane": 1,
+      "z": 46,
+      "offsetX": -0.9
+    },
+    {
+      "type": "cone",
+      "lane": 1,
+      "z": 46,
+      "offsetX": 0.9
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 15,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    },
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 40,
+      "count": 6
+    }
+  ]
+}

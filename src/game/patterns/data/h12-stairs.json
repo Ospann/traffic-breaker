@@ -1,0 +1,46 @@
+{
+  "id": "h12-stairs",
+  "length": 75,
+  "difficulty": 3,
+  "tags": ["jump", "duck"],
+  "obstacles": [
+    {
+      "type": "lowBarrier",
+      "lane": 0,
+      "z": 16
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 24
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 2,
+      "z": 32
+    },
+    {
+      "type": "highSign",
+      "lane": 0,
+      "z": 44
+    },
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 52
+    },
+    {
+      "type": "highSign",
+      "lane": 2,
+      "z": 60
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 26,
+      "count": 4
+    }
+  ]
+}

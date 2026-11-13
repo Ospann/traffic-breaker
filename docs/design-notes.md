@@ -22,3 +22,25 @@ Contested game-design and technical decisions. Each one can be revisited.
 - **Breaker's look.** A low two-seat electric roadster: long nose with no grille, raked wraparound windshield, open cockpit with roll hoops, rear fender flares, thin headlights and a full-width taillight. Following the brief, it does not copy the body of any real car (including Tesla).
 - **Wide screens (desktop).** The canvas fills the whole window. The camera keeps its vertical field of view and opens up horizontally, so you see more city on the sides. The UI stays a centred 9:16 column. Gameplay doesn't change: obstacles are still only on the 3 lanes.
 - **Pixel budget.** The render is capped at 2.4M pixels (DPR drops on large monitors). On top of that, the governor lowers quality when fps falls.
+
+## Stage 2
+
+- **Ramp (tow truck).** A slope 7 m long rising to 3.2 m (truck roof height). If a truck stands right after it, the car drives onto the roof and keeps going along the chain. A roof "holds" the car 1.2 m beyond its edges, so gaps of up to about 2 m between trucks in a chain can be driven across. If there is no truck after the ramp, the car launches with an upward boost and glides at half gravity. You can change lanes in the air, and swiping down cancels the glide (that's the "controlled landing"). While on the ramp the car's nose is raised, so it doesn't catch the rear of the truck at the top.
+- **Pass validator** (`src/game/patterns/validator.ts`). A search over the real `PlayerMotion` physics and `classifyHit` collisions, with no boost:
+  - a decision every 0.1 s: nothing / left / right / up / down;
+  - simulation step 1/120, the same as in the game;
+  - a light hit counts as a failure: the path must be clean.
+- **What exactly is checked:**
+  - **Every pattern:** from each of the 3 lanes, at 15, 24 and 32 m/s.
+  - **Every junction A→B:** for each start lane of A, at least one end state of A (including mid-air ones) must let B be passed.
+  - **Speed during a check:** constant. In the game it grows, but by under 1% per pattern.
+- **Authoring rules:**
+  - an obstacle may not go past `length − 2 m`, so a junction never leans on the previous pattern's obstacles;
+  - coins may not be inside solid obstacles (tested).
+- **Generator** (`src/game/world/pattern-generator.ts`):
+  - difficulty weights over time are in `balance.generator` and reach maximum by 200 s;
+  - the last 4 patterns aren't repeated, so no back-to-back repeats are guaranteed;
+  - after a difficulty-3 pattern there is always a pattern tagged `breather`;
+  - the seed changes every run.
+- **Oncoming cars in the validator** are simulated exactly as in the game (meeting point × (1 + v_car / v)).
+- **Debug.** `?debug=1&pattern=<id>` loops one pattern; useful for testing ramps and roofs by hand.

@@ -1,0 +1,44 @@
+{
+  "id": "m01-truck-gate",
+  "length": 80,
+  "difficulty": 2,
+  "tags": ["truck", "jump"],
+  "obstacles": [
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 15
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 15
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 22
+    },
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 60
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 17,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    },
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 40,
+      "count": 6
+    }
+  ]
+}

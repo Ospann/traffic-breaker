@@ -1,0 +1,42 @@
+{
+  "id": "m11-roof-run",
+  "length": 60,
+  "difficulty": 2,
+  "tags": ["ramp", "roof", "chain"],
+  "obstacles": [
+    {
+      "type": "ramp",
+      "lane": 1,
+      "z": 16
+    },
+    {
+      "type": "truck",
+      "lane": 1,
+      "z": 23
+    },
+    {
+      "type": "truck",
+      "lane": 1,
+      "z": 36
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 30
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 30
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 24,
+      "count": 9,
+      "y": 3.9
+    }
+  ]
+}

@@ -15,11 +15,12 @@ export const obstaclePoolSizes: Readonly<Record<ObstacleType, number>> = {
   lowBarrier: 10,
   midBarrier: 10,
   highSign: 8,
-  truck: 8,
-  bus: 6,
+  truck: 16,
+  bus: 8,
   oncoming: 8,
   cone: 16,
-  hologram: 6,
+  hologram: 8,
+  ramp: 8,
 };
 
 export class TrackView implements TrackListener {

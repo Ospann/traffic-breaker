@@ -1,0 +1,47 @@
+{
+  "id": "h04-weave",
+  "length": 85,
+  "difficulty": 3,
+  "tags": ["oncoming"],
+  "obstacles": [
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 18
+    },
+    {
+      "type": "oncoming",
+      "lane": 1,
+      "z": 30
+    },
+    {
+      "type": "oncoming",
+      "lane": 2,
+      "z": 42
+    },
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 54
+    },
+    {
+      "type": "oncoming",
+      "lane": 1,
+      "z": 66
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 14,
+      "count": 4
+    },
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 30,
+      "count": 4
+    }
+  ]
+}

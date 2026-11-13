@@ -1,0 +1,49 @@
+{
+  "id": "m14-mid-slalom-cones",
+  "length": 70,
+  "difficulty": 2,
+  "tags": ["barrier", "deco"],
+  "obstacles": [
+    {
+      "type": "midBarrier",
+      "lane": 0,
+      "z": 18
+    },
+    {
+      "type": "midBarrier",
+      "lane": 1,
+      "z": 36
+    },
+    {
+      "type": "midBarrier",
+      "lane": 2,
+      "z": 54
+    },
+    {
+      "type": "cone",
+      "lane": 0,
+      "z": 30,
+      "offsetX": 0.9
+    },
+    {
+      "type": "cone",
+      "lane": 2,
+      "z": 30,
+      "offsetX": -0.9
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 14,
+      "count": 5
+    },
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 36,
+      "count": 5
+    }
+  ]
+}

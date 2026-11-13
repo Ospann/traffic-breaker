@@ -202,6 +202,58 @@ function hologram(): ObstacleModel {
   return { root, flicker: material };
 }
 
+function rampModel(): ModelBuilder {
+  const spec = obstacleSpecs.ramp;
+  const w = spec.halfWidth * 2;
+  const half = spec.length / 2;
+  const angle = Math.atan2(spec.y1, spec.length);
+  const deckLength = Math.hypot(spec.length, spec.y1);
+  const b = new ModelBuilder();
+  b.add(
+    extrudeProfile(
+      [
+        [-half, 0],
+        [half, spec.y1],
+        [half, spec.y1 - 0.25],
+        [-half + 0.5, 0],
+      ],
+      w,
+    ),
+    0x3b3f52,
+    { rotation: extrudeRotation, position: [-w / 2, 0, 0] },
+  );
+  b.add(box(w - 0.2, spec.y1 - 0.5, 2.6), 0x2a2238, {
+    position: [0, (spec.y1 - 0.5) / 2, -half + 1.3],
+  });
+  b.add(box(w - 0.4, 1.4, 1.6), 0x2a2238, { position: [0, 0.7, -half + 3.4] });
+  for (const z of [-half + 0.6, -half + 2.2]) {
+    for (const x of [-w / 2 + 0.1, w / 2 - 0.1]) {
+      b.add(cylinder(0.42, 0.3, 10), palette.darkMetal, {
+        position: [x, 0.42, z],
+        rotation: [0, 0, Math.PI / 2],
+      });
+    }
+  }
+  for (const side of [-1, 1]) {
+    b.addGlow(box(0.07, 0.07, deckLength), palette.amber, {
+      position: [side * (w / 2 - 0.03), spec.y1 / 2 + 0.04, 0],
+      rotation: [angle, 0, 0],
+    });
+  }
+  for (let i = 0; i < 4; i += 1) {
+    const t = (i + 0.5) / 4;
+    const z = half - t * spec.length;
+    for (const side of [-1, 1]) {
+      b.addGlow(box(0.75, 0.03, 0.14), palette.amber, {
+        position: [side * 0.35, t * spec.y1 + 0.03, z],
+        rotation: [angle, side * 0.6, 0],
+      });
+    }
+  }
+  b.addGlow(box(w, 0.06, 0.06), palette.red, { position: [0, spec.y1 + 0.02, -half] });
+  return b;
+}
+
 const solid = (builder: () => ModelBuilder) => (): ObstacleModel => ({
   root: builder().build(),
   flicker: null,
@@ -216,6 +268,7 @@ const builders: Readonly<Record<ObstacleType, () => ObstacleModel>> = {
   oncoming: solid(oncoming),
   cone: solid(cone),
   hologram,
+  ramp: solid(rampModel),
 };
 
 export function buildObstacle(type: ObstacleType): ObstacleModel {

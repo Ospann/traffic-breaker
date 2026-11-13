@@ -1,0 +1,48 @@
+{
+  "id": "h03-triple-threat",
+  "length": 75,
+  "difficulty": 3,
+  "tags": ["mixed"],
+  "obstacles": [
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 15
+    },
+    {
+      "type": "midBarrier",
+      "lane": 1,
+      "z": 20
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 45
+    },
+    {
+      "type": "oncoming",
+      "lane": 2,
+      "z": 25
+    },
+    {
+      "type": "highSign",
+      "lane": 2,
+      "z": 50
+    },
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 62
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 40,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    }
+  ]
+}

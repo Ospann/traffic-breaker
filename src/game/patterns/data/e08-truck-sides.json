@@ -1,0 +1,26 @@
+{
+  "id": "e08-truck-sides",
+  "length": 75,
+  "difficulty": 1,
+  "tags": ["truck"],
+  "obstacles": [
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 16
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 40
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 16,
+      "count": 12
+    }
+  ]
+}

@@ -123,6 +123,10 @@ export class WorldView {
           this.sparks(x, y, 16, palette.amber);
           this.rig.shake(0.12);
           break;
+        case 'rampLaunch':
+          this.rig.shake(0.25);
+          this.burstUnder(x, y, 24, palette.cyan);
+          break;
         case 'fastDrop':
           this.burstUnder(x, y, 10, palette.cyan);
           break;

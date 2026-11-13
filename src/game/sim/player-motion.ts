@@ -1,5 +1,6 @@
-import { jumpGravity, jumpVelocity, LANE_WIDTH, LANES, player, thrust } from '../balance';
+import { jumpGravity, jumpVelocity, LANE_WIDTH, LANES, player, ramp, thrust } from '../balance';
 import type { Action } from '../input/actions';
+import { obstacleSpecs } from '../world/entities';
 
 export type MotionEvent =
   | 'laneChange'
@@ -9,9 +10,12 @@ export type MotionEvent =
   | 'fastDrop'
   | 'dashStart'
   | 'dashEnd'
-  | 'bounce';
+  | 'bounce'
+  | 'rampLaunch';
 
 export type VerticalMode = 'ground' | 'air' | 'dash' | 'descend';
+
+const RAMP_SLOPE = obstacleSpecs.ramp.y1 / obstacleSpecs.ramp.length;
 
 export function laneX(lane: number): number {
   return (lane - (LANES - 1) / 2) * LANE_WIDTH;
@@ -38,6 +42,8 @@ export class PlayerMotion {
   invulnTimer = 0;
   private slamPending = false;
   private dashRiseFrom = 0;
+  onRamp = false;
+  gliding = false;
 
   readonly events: MotionEvent[] = [];
   tuning: MotionTuning = { jumpVelocity, gravity: jumpGravity };
@@ -56,7 +62,39 @@ export class PlayerMotion {
     this.dashTimer = 0;
     this.invulnTimer = 0;
     this.slamPending = false;
+    this.onRamp = false;
+    this.gliding = false;
     this.events.length = 0;
+  }
+
+  copyFrom(other: PlayerMotion): void {
+    this.lane = other.lane;
+    this.prevLane = other.prevLane;
+    this.x = other.x;
+    this.laneFromX = other.laneFromX;
+    this.laneT = other.laneT;
+    this.y = other.y;
+    this.vy = other.vy;
+    this.groundY = other.groundY;
+    this.mode = other.mode;
+    this.duckTimer = other.duckTimer;
+    this.dashTimer = other.dashTimer;
+    this.invulnTimer = other.invulnTimer;
+    this.slamPending = other.slamPending;
+    this.dashRiseFrom = other.dashRiseFrom;
+    this.onRamp = other.onRamp;
+    this.gliding = other.gliding;
+    this.tuning = other.tuning;
+    this.events.length = 0;
+  }
+
+  get laneProgress(): number {
+    return this.laneT;
+  }
+
+  setGround(height: number, isRamp: boolean): void {
+    this.groundY = height;
+    if (this.mode === 'ground' && height >= this.y - 0.01) this.onRamp = isRamp;
   }
 
   get isChangingLane(): boolean {
@@ -77,6 +115,10 @@ export class PlayerMotion {
 
   get isInvulnerable(): boolean {
     return this.mode === 'dash' || this.mode === 'descend' || this.invulnTimer > 0;
+  }
+
+  get frontLift(): number {
+    return this.onRamp && this.mode === 'ground' ? player.halfLength * RAMP_SLOPE : 0;
   }
 
   get height(): number {
@@ -105,6 +147,7 @@ export class PlayerMotion {
         return;
       case 'down':
         if (this.mode === 'air') {
+          this.gliding = false;
           this.vy = Math.min(this.vy, -player.fastDropSpeed);
           this.slamPending = true;
           this.events.push('fastDrop');
@@ -115,6 +158,8 @@ export class PlayerMotion {
         return;
       case 'dash':
         this.mode = 'dash';
+        this.gliding = false;
+        this.onRamp = false;
         this.dashTimer = thrust.dashSec;
         this.dashRiseFrom = this.y;
         this.duckTimer = 0;
@@ -149,13 +194,21 @@ export class PlayerMotion {
         if (this.groundY < this.y - 0.01) {
           this.mode = 'air';
           this.vy = 0;
+          if (this.onRamp) {
+            this.vy = ramp.launchVelocity;
+            this.gliding = true;
+            this.duckTimer = 0;
+            this.events.push('rampLaunch');
+          }
+          this.onRamp = false;
         } else {
           this.y = this.groundY;
         }
         break;
       case 'air':
-        this.y += this.vy * dt - 0.5 * this.tuning.gravity * dt * dt;
-        this.vy -= this.tuning.gravity * dt;
+        const gravity = this.tuning.gravity * (this.gliding ? ramp.glideGravityScale : 1);
+        this.y += this.vy * dt - 0.5 * gravity * dt * dt;
+        this.vy -= gravity * dt;
         if (this.y <= this.groundY && this.vy <= 0) this.land();
         break;
       case 'dash': {
@@ -187,6 +240,7 @@ export class PlayerMotion {
   }
 
   private land(): void {
+    this.gliding = false;
     this.y = this.groundY;
     this.vy = 0;
     this.mode = 'ground';
@@ -199,6 +253,8 @@ export class PlayerMotion {
   }
 
   private jump(): void {
+    this.gliding = false;
+    this.onRamp = false;
     this.duckTimer = 0;
     this.slamPending = false;
     this.mode = 'air';

@@ -1,0 +1,34 @@
+{
+  "id": "e12-bus-middle",
+  "length": 70,
+  "difficulty": 1,
+  "tags": ["truck", "jump"],
+  "obstacles": [
+    {
+      "type": "bus",
+      "lane": 1,
+      "z": 18
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 0,
+      "z": 40
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 16,
+      "count": 8
+    },
+    {
+      "kind": "arc",
+      "lane": 0,
+      "z": 35,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    }
+  ]
+}

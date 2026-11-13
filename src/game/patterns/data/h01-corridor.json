@@ -1,0 +1,48 @@
+{
+  "id": "h01-corridor",
+  "length": 80,
+  "difficulty": 3,
+  "tags": ["truck", "jump", "duck"],
+  "obstacles": [
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 15
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 15
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 16
+    },
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 34
+    },
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 60
+    },
+    {
+      "type": "oncoming",
+      "lane": 2,
+      "z": 66
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 11,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    }
+  ]
+}

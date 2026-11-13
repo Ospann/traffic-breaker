@@ -14,7 +14,9 @@ import { LoadingScreen } from '../ui/loading-screen';
 import { MenuScreen } from '../ui/menu-screen';
 import { PauseScreen } from '../ui/pause-screen';
 import type { WorldView } from '../view/world-view';
+import { PatternGenerator } from '../world/pattern-generator';
 import { SequentialSource } from '../world/sequential-source';
+import type { PatternSource } from '../world/track';
 import { StateMachine } from './state-machine';
 import { registerStates } from './states';
 
@@ -29,7 +31,7 @@ export class App {
   readonly machine = new StateMachine();
   readonly loop: Loop;
   readonly quality: QualityGovernor;
-  readonly session = new RunSession(new SequentialSource(patterns));
+  readonly session = new RunSession(createPatternSource());
   readonly debug: DebugOverlay | null;
 
   readonly loading: LoadingScreen;
@@ -204,6 +206,15 @@ export class App {
     this.renderMenu();
     this.hud.refreshTexts();
   }
+}
+
+function createPatternSource(): PatternSource {
+  const params = new URLSearchParams(window.location.search);
+  const forced = params.get('debug') === '1' ? params.get('pattern') : null;
+  const only = forced ? patterns.filter((p) => p.id === forced) : [];
+  if (only.length > 0) return new SequentialSource(only);
+  if (forced) console.warn(`[debug] unknown pattern "${forced}"`);
+  return new PatternGenerator(patterns);
 }
 
 export function createApp(root: HTMLElement): App {

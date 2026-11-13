@@ -1,0 +1,44 @@
+{
+  "id": "m07-ramp-launch",
+  "length": 75,
+  "difficulty": 2,
+  "tags": ["ramp", "air"],
+  "obstacles": [
+    {
+      "type": "ramp",
+      "lane": 2,
+      "z": 18
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 2,
+      "z": 34
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 22
+    },
+    {
+      "type": "oncoming",
+      "lane": 1,
+      "z": 50
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 26,
+      "count": 6,
+      "spacing": 2.5,
+      "y": 4.2
+    },
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 20,
+      "count": 6
+    }
+  ]
+}

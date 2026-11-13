@@ -1,0 +1,37 @@
+{
+  "id": "m08-truck-zig",
+  "length": 80,
+  "difficulty": 2,
+  "tags": ["truck"],
+  "obstacles": [
+    {
+      "type": "truck",
+      "lane": 1,
+      "z": 16
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 34
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 52
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 14,
+      "count": 6
+    },
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 34,
+      "count": 6
+    }
+  ]
+}

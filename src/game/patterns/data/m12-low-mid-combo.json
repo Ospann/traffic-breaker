@@ -1,0 +1,51 @@
+{
+  "id": "m12-low-mid-combo",
+  "length": 70,
+  "difficulty": 2,
+  "tags": ["barrier", "truck"],
+  "obstacles": [
+    {
+      "type": "lowBarrier",
+      "lane": 0,
+      "z": 20
+    },
+    {
+      "type": "midBarrier",
+      "lane": 0,
+      "z": 42
+    },
+    {
+      "type": "bus",
+      "lane": 1,
+      "z": 20
+    },
+    {
+      "type": "highSign",
+      "lane": 2,
+      "z": 25
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 2,
+      "z": 48
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 0,
+      "z": 15,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    },
+    {
+      "kind": "arc",
+      "lane": 2,
+      "z": 43,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    }
+  ]
+}

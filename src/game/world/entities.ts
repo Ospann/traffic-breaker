@@ -6,7 +6,8 @@ export type ObstacleType =
   | 'bus'
   | 'oncoming'
   | 'cone'
-  | 'hologram';
+  | 'hologram'
+  | 'ramp';
 
 export interface ObstacleSpec {
   length: number;
@@ -15,6 +16,7 @@ export interface ObstacleSpec {
   y1: number;
   solid: boolean;
   roof: boolean;
+  slope: boolean;
   approachSpeed: number;
 }
 
@@ -27,6 +29,7 @@ export const obstacleSpecs: Readonly<Record<ObstacleType, ObstacleSpec>> = {
     solid: true,
     roof: false,
     approachSpeed: 0,
+    slope: false,
   },
   midBarrier: {
     length: 0.5,
@@ -36,6 +39,7 @@ export const obstacleSpecs: Readonly<Record<ObstacleType, ObstacleSpec>> = {
     solid: true,
     roof: false,
     approachSpeed: 0,
+    slope: false,
   },
   highSign: {
     length: 0.9,
@@ -45,9 +49,28 @@ export const obstacleSpecs: Readonly<Record<ObstacleType, ObstacleSpec>> = {
     solid: true,
     roof: false,
     approachSpeed: 0,
+    slope: false,
   },
-  truck: { length: 12, halfWidth: 1.1, y0: 0, y1: 3.2, solid: true, roof: true, approachSpeed: 0 },
-  bus: { length: 10, halfWidth: 1.1, y0: 0, y1: 3, solid: true, roof: true, approachSpeed: 0 },
+  truck: {
+    length: 12,
+    halfWidth: 1.1,
+    y0: 0,
+    y1: 3.2,
+    solid: true,
+    roof: true,
+    approachSpeed: 0,
+    slope: false,
+  },
+  bus: {
+    length: 10,
+    halfWidth: 1.1,
+    y0: 0,
+    y1: 3,
+    solid: true,
+    roof: true,
+    approachSpeed: 0,
+    slope: false,
+  },
   oncoming: {
     length: 4.2,
     halfWidth: 0.95,
@@ -56,6 +79,7 @@ export const obstacleSpecs: Readonly<Record<ObstacleType, ObstacleSpec>> = {
     solid: true,
     roof: false,
     approachSpeed: 9,
+    slope: false,
   },
   cone: {
     length: 0.5,
@@ -65,6 +89,7 @@ export const obstacleSpecs: Readonly<Record<ObstacleType, ObstacleSpec>> = {
     solid: false,
     roof: false,
     approachSpeed: 0,
+    slope: false,
   },
   hologram: {
     length: 0.4,
@@ -73,6 +98,17 @@ export const obstacleSpecs: Readonly<Record<ObstacleType, ObstacleSpec>> = {
     y1: 3,
     solid: false,
     roof: false,
+    approachSpeed: 0,
+    slope: false,
+  },
+  ramp: {
+    length: 7,
+    halfWidth: 1.15,
+    y0: 0,
+    y1: 3.2,
+    solid: true,
+    roof: true,
+    slope: true,
     approachSpeed: 0,
   },
 };
@@ -86,8 +122,14 @@ export const obstacleTypes: readonly ObstacleType[] = [
   'oncoming',
   'cone',
   'hologram',
+  'ramp',
 ];
 
 export function isObstacleType(value: unknown): value is ObstacleType {
   return typeof value === 'string' && Object.hasOwn(obstacleSpecs, value);
+}
+
+export function surfaceHeight(spec: ObstacleSpec, along: number): number {
+  if (!spec.slope) return spec.y1;
+  return (Math.min(Math.max(along, 0), spec.length) / spec.length) * spec.y1;
 }

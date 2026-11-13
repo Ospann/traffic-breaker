@@ -74,19 +74,22 @@ export class RunSession {
     this.buffer.drain(this.clock, (action) => this.tryPerform(action));
     if (!this.motion.isDashing) this.thrust.tick(dt);
 
-    this.track.update(dt, this.speed);
+    this.track.update(dt, this.speed, this.elapsed);
 
     this.prevPose.x = this.motion.x;
     this.prevPose.y = this.motion.y;
     this.prevPose.height = this.motion.height;
+    this.prevPose.frontLift = this.motion.frontLift;
 
-    this.motion.groundY = this.track.supportHeight(this.motion.x, this.motion.y);
+    const support = this.track.supportAt(this.motion.x, this.motion.y);
+    this.motion.setGround(support.height, support.ramp);
     this.motion.update(dt);
     this.flushMotionEvents();
 
     this.pose.x = this.motion.x;
     this.pose.y = this.motion.y;
     this.pose.height = this.motion.height;
+    this.pose.frontLift = this.motion.frontLift;
     this.resolveCollisions();
 
     this.drone.update(dt);
@@ -144,7 +147,7 @@ export class RunSession {
   private stepCrashed(dt: number): void {
     this.crashTimer += dt;
     this.speed = Math.max(0, this.speed - this.speed * Math.min(1, 6 * dt));
-    this.track.update(dt, this.speed);
+    this.track.update(dt, this.speed, this.elapsed);
     this.drone.update(dt);
     if (this.state === 'crashed' && this.crashTimer >= crash.gameOverDelaySec) this.state = 'over';
   }

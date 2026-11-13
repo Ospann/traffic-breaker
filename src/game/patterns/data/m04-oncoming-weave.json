@@ -1,0 +1,41 @@
+{
+  "id": "m04-oncoming-weave",
+  "length": 90,
+  "difficulty": 2,
+  "tags": ["oncoming"],
+  "obstacles": [
+    {
+      "type": "oncoming",
+      "lane": 1,
+      "z": 20
+    },
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 38
+    },
+    {
+      "type": "oncoming",
+      "lane": 2,
+      "z": 38
+    },
+    {
+      "type": "oncoming",
+      "lane": 1,
+      "z": 60
+    },
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 70
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 50,
+      "count": 8
+    }
+  ]
+}

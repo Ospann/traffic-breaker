@@ -1,0 +1,44 @@
+{
+  "id": "e02-trucks",
+  "length": 90,
+  "difficulty": 1,
+  "tags": ["truck"],
+  "obstacles": [
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 20
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 24
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 34
+    },
+    {
+      "type": "oncoming",
+      "lane": 1,
+      "z": 70
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 29,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    },
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 50,
+      "count": 6
+    }
+  ]
+}

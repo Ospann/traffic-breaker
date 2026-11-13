@@ -1,0 +1,32 @@
+{
+  "id": "m06-bus-tunnel",
+  "length": 60,
+  "difficulty": 2,
+  "tags": ["truck", "duck"],
+  "obstacles": [
+    {
+      "type": "bus",
+      "lane": 0,
+      "z": 15
+    },
+    {
+      "type": "bus",
+      "lane": 2,
+      "z": 15
+    },
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 20
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 14,
+      "count": 8,
+      "y": 0.6
+    }
+  ]
+}

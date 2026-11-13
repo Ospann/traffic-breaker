@@ -1,0 +1,37 @@
+{
+  "id": "m13-oncoming-trucks",
+  "length": 70,
+  "difficulty": 2,
+  "tags": ["oncoming", "truck"],
+  "obstacles": [
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 16
+    },
+    {
+      "type": "oncoming",
+      "lane": 1,
+      "z": 35
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 45
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 14,
+      "count": 5
+    },
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 40,
+      "count": 6
+    }
+  ]
+}

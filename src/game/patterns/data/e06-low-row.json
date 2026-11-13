@@ -1,0 +1,39 @@
+{
+  "id": "e06-low-row",
+  "length": 70,
+  "difficulty": 1,
+  "tags": ["jump"],
+  "obstacles": [
+    {
+      "type": "lowBarrier",
+      "lane": 0,
+      "z": 30
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 30
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 2,
+      "z": 30
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 25,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    },
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 45,
+      "count": 6
+    }
+  ]
+}

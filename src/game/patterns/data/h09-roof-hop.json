@@ -1,0 +1,61 @@
+{
+  "id": "h09-roof-hop",
+  "length": 75,
+  "difficulty": 3,
+  "tags": ["ramp", "roof"],
+  "obstacles": [
+    {
+      "type": "ramp",
+      "lane": 0,
+      "z": 15
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 22
+    },
+    {
+      "type": "truck",
+      "lane": 1,
+      "z": 35
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 48
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 24
+    },
+    {
+      "type": "oncoming",
+      "lane": 2,
+      "z": 30
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 23,
+      "count": 4,
+      "y": 3.9
+    },
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 36,
+      "count": 4,
+      "y": 3.9
+    },
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 49,
+      "count": 4,
+      "y": 3.9
+    }
+  ]
+}

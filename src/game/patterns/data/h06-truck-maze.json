@@ -1,0 +1,41 @@
+{
+  "id": "h06-truck-maze",
+  "length": 75,
+  "difficulty": 3,
+  "tags": ["truck"],
+  "obstacles": [
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 15
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 15
+    },
+    {
+      "type": "truck",
+      "lane": 1,
+      "z": 36
+    },
+    {
+      "type": "truck",
+      "lane": 0,
+      "z": 58
+    },
+    {
+      "type": "truck",
+      "lane": 2,
+      "z": 58
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 14,
+      "count": 8
+    }
+  ]
+}

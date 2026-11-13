@@ -1,0 +1,26 @@
+{
+  "id": "e10-oncoming-pair",
+  "length": 75,
+  "difficulty": 1,
+  "tags": ["oncoming"],
+  "obstacles": [
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 25
+    },
+    {
+      "type": "oncoming",
+      "lane": 2,
+      "z": 50
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 20,
+      "count": 10
+    }
+  ]
+}

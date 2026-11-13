@@ -1,0 +1,55 @@
+{
+  "id": "m05-mid-wall",
+  "length": 75,
+  "difficulty": 2,
+  "tags": ["barrier", "duck", "jump"],
+  "obstacles": [
+    {
+      "type": "midBarrier",
+      "lane": 0,
+      "z": 25
+    },
+    {
+      "type": "midBarrier",
+      "lane": 1,
+      "z": 25
+    },
+    {
+      "type": "midBarrier",
+      "lane": 2,
+      "z": 25
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 0,
+      "z": 50
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 2,
+      "z": 50
+    },
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 50
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 18,
+      "count": 6,
+      "y": 0.6
+    },
+    {
+      "kind": "arc",
+      "lane": 0,
+      "z": 45,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    }
+  ]
+}

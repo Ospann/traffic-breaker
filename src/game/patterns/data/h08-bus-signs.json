@@ -1,0 +1,48 @@
+{
+  "id": "h08-bus-signs",
+  "length": 70,
+  "difficulty": 3,
+  "tags": ["truck", "duck", "oncoming"],
+  "obstacles": [
+    {
+      "type": "bus",
+      "lane": 0,
+      "z": 15
+    },
+    {
+      "type": "bus",
+      "lane": 2,
+      "z": 15
+    },
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 18
+    },
+    {
+      "type": "lowBarrier",
+      "lane": 1,
+      "z": 38
+    },
+    {
+      "type": "oncoming",
+      "lane": 0,
+      "z": 52
+    },
+    {
+      "type": "oncoming",
+      "lane": 2,
+      "z": 52
+    }
+  ],
+  "coins": [
+    {
+      "kind": "arc",
+      "lane": 1,
+      "z": 33,
+      "count": 5,
+      "length": 12,
+      "height": 2.6
+    }
+  ]
+}

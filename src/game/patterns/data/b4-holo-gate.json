@@ -1,0 +1,38 @@
+{
+  "id": "b4-holo-gate",
+  "length": 55,
+  "difficulty": 1,
+  "tags": ["breather", "deco"],
+  "obstacles": [
+    {
+      "type": "hologram",
+      "lane": 0,
+      "z": 25
+    },
+    {
+      "type": "hologram",
+      "lane": 2,
+      "z": 25
+    },
+    {
+      "type": "cone",
+      "lane": 1,
+      "z": 40,
+      "offsetX": 0.9
+    },
+    {
+      "type": "cone",
+      "lane": 1,
+      "z": 40,
+      "offsetX": -0.9
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 14,
+      "count": 8
+    }
+  ]
+}

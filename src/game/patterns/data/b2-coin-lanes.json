@@ -1,0 +1,27 @@
+{
+  "id": "b2-coin-lanes",
+  "length": 50,
+  "difficulty": 1,
+  "tags": ["breather"],
+  "obstacles": [
+    {
+      "type": "hologram",
+      "lane": 1,
+      "z": 30
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 0,
+      "z": 8,
+      "count": 6
+    },
+    {
+      "kind": "line",
+      "lane": 2,
+      "z": 26,
+      "count": 6
+    }
+  ]
+}

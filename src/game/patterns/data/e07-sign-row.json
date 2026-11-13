@@ -1,0 +1,32 @@
+{
+  "id": "e07-sign-row",
+  "length": 70,
+  "difficulty": 1,
+  "tags": ["duck"],
+  "obstacles": [
+    {
+      "type": "highSign",
+      "lane": 0,
+      "z": 30
+    },
+    {
+      "type": "highSign",
+      "lane": 1,
+      "z": 30
+    },
+    {
+      "type": "highSign",
+      "lane": 2,
+      "z": 30
+    }
+  ],
+  "coins": [
+    {
+      "kind": "line",
+      "lane": 1,
+      "z": 22,
+      "count": 6,
+      "y": 0.6
+    }
+  ]
+}
