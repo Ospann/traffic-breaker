@@ -1,32 +1,19 @@
-# game-template
+# Traffic Breaker
 
-Шаблон HTML5-игры на Phaser 4 + TypeScript + Vite для публикации на веб-порталах (Playgama, CrazyGames, Яндекс Игры и другие) через [Playgama Bridge](https://github.com/playgama/bridge).
+3D endless runner для веб-порталов (Playgama, CrazyGames и др.), в первую очередь для мобильных браузеров. Three.js + TypeScript + Vite, платформенный слой из шаблона game-template ([Playgama Bridge](https://github.com/playgama/bridge)).
+
+ТЗ: [docs/TASK.md](docs/TASK.md). Спорные решения: [docs/design-notes.md](docs/design-notes.md).
 
 ## Стек
 
-| Что                | Версия                                                                 |
-| ------------------ | ---------------------------------------------------------------------- |
-| Phaser             | 4.2.1 (Matter.js и Arcade встроены, включаются в `src/game/config.ts`) |
-| Playgama Bridge    | 2.4.2, подключается локальным файлом из npm, без CDN                   |
-| TypeScript         | 7, `strict`                                                            |
-| Vite / Vitest      | 8 / 4                                                                  |
-| Линтер / форматтер | oxlint / oxfmt                                                         |
-| Пакетный менеджер  | pnpm 12, Node 24 (`.nvmrc`)                                            |
-
-## Создать новую игру из шаблона
-
-1. На GitHub: **Use this template → Create a new repository** (в настройках этого репозитория должна стоять галочка _Template repository_).
-2. Склонировать новый репозиторий и поставить зависимости:
-   ```sh
-   corepack enable
-   pnpm install
-   ```
-3. Переименовать игру:
-   - `package.json` → `name` (из него берётся имя архива) и `version`;
-   - `src/game/config.ts` → `id` (префикс ключа сохранения), ориентация, разрешение, физика, длительность уровня, кулдаун рекламы;
-   - `index.html` → `<title>`;
-   - `src/i18n/*.json` → `menu.title`.
-4. Заменить демо-механику в `src/game/scenes/game.ts` и ассеты в `public/assets/`.
+| Что                | Версия                                               |
+| ------------------ | ---------------------------------------------------- |
+| Three.js           | 0.187, рендер и игровой цикл; UI — DOM поверх canvas |
+| Playgama Bridge    | 2.4.2, подключается локальным файлом из npm, без CDN |
+| TypeScript         | 7, `strict`                                          |
+| Vite / Vitest      | 8 / 4                                                |
+| Линтер / форматтер | oxlint / oxfmt                                       |
+| Пакетный менеджер  | pnpm 12, Node 24 (`.nvmrc`)                          |
 
 ## Разработка
 
@@ -78,23 +65,23 @@ VITE_PLATFORM=mock pnpm build:zip   # то же через env
 ```
 src/
   core/            платформенный слой и общие сервисы, ничего не знает об игре
-    platform/      интерфейс Platform, адаптеры mock и bridge
-    save/          SaveManager: версия схемы, миграции, debounce, fallback на localStorage
-    ads/           AdsManager: частота interstitial, gameplay stop/start вокруг рекламы
-    i18n/          I18n: t(key, params), fallback на en
-    input.ts       блокировка контекстного меню, скролла, pinch-zoom, выделения
-    pause.ts       пауза по событию платформы и visibilitychange
-    audio.ts       MuteController: звук выключен, если есть хоть одна причина
-    gameplay.ts    GameplayTracker: не шлёт повторных start/stop
-  game/            код конкретной игры
-    config.ts      ориентация, разрешение, физика, параметры уровня и рекламы
-    save.ts        схема сохранения и миграции
-    scenes/        Boot, Preload, Menu, Game, Pause, GameOver
+  game/
+    app/           App и state machine: boot, preload, menu, run, pause, game-over, garage
+    engine/        Stage (canvas + DOM-слой, DPR ≤ 2), фиксированный шаг 1/120, камера, автокачество
+    input/         распознавание свайпов, буфер ввода 150 мс, клавиатура
+    sim/           логика забега без three: движение, тяга, дрон, столкновения
+    world/         трасса из паттернов, пулы объектов
+    patterns/      паттерны трассы в JSON (data/) и их схема
+    view/          отображение симуляции в Three.js
+    art/           генераторы low-poly моделей в коде (заменяемы на glTF)
+    audio/         движок Web Audio, MuteController применяется к нему
+    ui/            экраны на DOM, у каждого свой index.module.css
+    balance.ts     скорость, тайминги, высоты препятствий
   i18n/            en.json (эталон ключей), ru.json, tr.json
-public/            ассеты и playgama-bridge-config.json
-scripts/           build-zip.ts
-tests/             тесты SaveManager, AdsManager, I18n
+tests/             Vitest
 ```
+
+`?debug=1` — оверлей с fps, draw calls и треугольниками; клавиша F заполняет тягу.
 
 ### Границы импортов
 

@@ -4,6 +4,7 @@ import type { GameplayTracker } from '@core/gameplay';
 import type { Platform } from '@core/platform';
 import type { SaveManager } from '@core/save';
 import type { GameI18n } from '../i18n';
+import type { AudioEngine } from './audio/audio-engine';
 import type { GameSave } from './save';
 
 export interface Services {
@@ -13,6 +14,7 @@ export interface Services {
   save: SaveManager<GameSave>;
   i18n: GameI18n;
   mute: MuteController;
+  audio: AudioEngine;
 }
 
 let current: Services | null = null;

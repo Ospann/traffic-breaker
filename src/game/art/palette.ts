@@ -1,0 +1,18 @@
+export const palette = {
+  sky: 0x0b0520,
+  fog: 0x1a0b33,
+  asphalt: 0x1b1a26,
+  concrete: 0x3a3848,
+  metal: 0x2a2d3a,
+  darkMetal: 0x14151d,
+  glass: 0x0d1830,
+  cyan: 0x22e6ff,
+  magenta: 0xff2bd6,
+  amber: 0xffb020,
+  orange: 0xff6a1a,
+  red: 0xff2244,
+  blue: 0x2a6bff,
+  white: 0xf2f4ff,
+  lime: 0x8dff3a,
+  violet: 0x8a4dff,
+} as const;

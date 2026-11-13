@@ -1,4 +1,3 @@
-import type Phaser from 'phaser';
 import { AdsManager } from '@core/ads';
 import { MuteController } from '@core/audio';
 import { GameplayTracker } from '@core/gameplay';
@@ -6,10 +5,10 @@ import { installInputGuards } from '@core/input';
 import { watchPause } from '@core/pause';
 import { createPlatform, LocalStorageStore } from '@core/platform';
 import { flushOnHide, SaveManager } from '@core/save';
+import { createApp } from './game/app/app';
+import { AudioEngine } from './game/audio/audio-engine';
 import { gameConfig } from './game/config';
-import { createGame } from './game/create-game';
 import { saveSchema } from './game/save';
-import { pauseGame } from './game/scenes/pause';
 import { provideServices } from './game/services';
 import { createI18n } from './i18n';
 import './style.css';
@@ -33,17 +32,11 @@ async function bootstrap(): Promise<void> {
     debounceMs: gameConfig.save.debounceMs,
   });
   const i18n = createI18n();
+  const audio = new AudioEngine();
+  const mute = new MuteController((muted) => audio.setMuted(muted));
+  audio.installUnlock();
 
-  let game: Phaser.Game | null = null;
-  const mute = new MuteController((muted) => {
-    if (game) game.sound.mute = muted;
-  });
-
-  provideServices({ platform, gameplay, ads, save, i18n, mute });
-
-  game = createGame(root);
-  game.sound.mute = mute.isMuted;
-  const activeGame = game;
+  provideServices({ platform, gameplay, ads, save, i18n, mute, audio });
 
   ads.onAdStart(() => mute.set('ad', true));
   ads.onAdEnd(() => mute.set('ad', false));
@@ -51,14 +44,16 @@ async function bootstrap(): Promise<void> {
   platform.onPause(() => mute.set('platform-pause', true));
   platform.onResume(() => mute.set('platform-pause', false));
   flushOnHide(() => save.flush());
+
+  const app = createApp(root);
   watchPause({
     platform,
     isAdActive: () => ads.isBusy,
-    onPause: () => pauseGame(activeGame),
+    onPause: () => app.pause(),
   });
 
   if (import.meta.env.DEV) {
-    Object.assign(window, { __game: game, __platform: platform });
+    Object.assign(window, { __app: app, __platform: platform });
   }
 }
 

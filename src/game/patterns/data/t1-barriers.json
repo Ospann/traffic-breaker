@@ -1,0 +1,14 @@
+{
+  "id": "t1-barriers",
+  "length": 80,
+  "difficulty": 1,
+  "tags": ["test", "barrier"],
+  "obstacles": [
+    { "type": "lowBarrier", "lane": 1, "z": 20 },
+    { "type": "midBarrier", "lane": 0, "z": 45 },
+    { "type": "highSign", "lane": 2, "z": 45 },
+    { "type": "cone", "lane": 1, "z": 46, "offsetX": -0.9 },
+    { "type": "cone", "lane": 1, "z": 46, "offsetX": 0.9 }
+  ],
+  "coins": []
+}

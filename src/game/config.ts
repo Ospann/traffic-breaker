@@ -1,16 +1,10 @@
-export type Orientation = 'portrait' | 'landscape';
-
-const orientation: Orientation = 'portrait';
-const baseSize = { width: 720, height: 1280 };
-
 export const gameConfig = {
-  id: 'game-template',
-  orientation,
-  width: orientation === 'portrait' ? baseSize.width : baseSize.height,
-  height: orientation === 'portrait' ? baseSize.height : baseSize.width,
-  backgroundColor: '#1d1f2b',
-  physics: 'none' as 'none' | 'arcade' | 'matter',
-  levelDurationSec: 20,
+  id: 'traffic-breaker',
+  width: 720,
+  height: 1280,
+  maxAspect: 21 / 9,
+  maxPixelRatio: 2,
+  backgroundColor: '#090414',
   ads: {
     interstitialCooldownSec: 60,
   },

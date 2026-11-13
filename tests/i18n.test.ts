@@ -70,6 +70,6 @@ describe('game dictionaries', () => {
     const i18n = createI18n();
     expect(i18n.languages.toSorted()).toEqual(['en', 'ru', 'tr']);
     expect(i18n.setLanguage('tr-TR')).toBe('tr');
-    expect(i18n.t('menu.play')).toBe('Oyna');
+    expect(i18n.t('menu.play')).toBe('Sür');
   });
 });

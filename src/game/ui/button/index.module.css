@@ -1,0 +1,49 @@
+.button {
+  min-width: calc(var(--u) * 380);
+  padding: calc(var(--u) * 22) calc(var(--u) * 40);
+  border: calc(var(--u) * 3) solid #22e6ff;
+  border-radius: calc(var(--u) * 18);
+  background: linear-gradient(180deg, rgb(34 230 255 / 0.28), rgb(138 77 255 / 0.28));
+  box-shadow:
+    0 0 calc(var(--u) * 24) rgb(34 230 255 / 0.45),
+    inset 0 0 calc(var(--u) * 18) rgb(34 230 255 / 0.25);
+  color: #f2f4ff;
+  font: inherit;
+  font-size: calc(var(--u) * 40);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 0.08s ease-out,
+    filter 0.15s;
+}
+
+.button:active {
+  transform: scale(0.96);
+}
+
+.button:hover {
+  filter: brightness(1.2);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.secondary {
+  border-color: #8a4dff;
+  background: rgb(20 10 40 / 0.6);
+  box-shadow: 0 0 calc(var(--u) * 16) rgb(138 77 255 / 0.35);
+  font-size: calc(var(--u) * 32);
+}
+
+.icon {
+  min-width: 0;
+  width: calc(var(--u) * 88);
+  height: calc(var(--u) * 88);
+  padding: 0;
+  font-size: calc(var(--u) * 36);
+}

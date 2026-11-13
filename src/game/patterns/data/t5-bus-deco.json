@@ -1,0 +1,15 @@
+{
+  "id": "t5-bus-deco",
+  "length": 85,
+  "difficulty": 1,
+  "tags": ["test", "truck", "deco"],
+  "obstacles": [
+    { "type": "hologram", "lane": 1, "z": 10 },
+    { "type": "bus", "lane": 1, "z": 22 },
+    { "type": "cone", "lane": 2, "z": 30 },
+    { "type": "cone", "lane": 2, "z": 36 },
+    { "type": "midBarrier", "lane": 0, "z": 50 },
+    { "type": "lowBarrier", "lane": 2, "z": 62 }
+  ],
+  "coins": []
+}
