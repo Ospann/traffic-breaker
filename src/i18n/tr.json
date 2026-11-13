@@ -25,5 +25,12 @@
   "gameover.menu": "Menü",
   "language.en": "English",
   "language.ru": "Русский",
-  "language.tr": "Türkçe"
+  "language.tr": "Türkçe",
+  "hud.shield": "Kalkan ×{count}",
+  "hud.shieldActive": "Kalkan {seconds} sn",
+  "bonus.fullTank": "Dolu depo",
+  "bonus.magnet": "Mıknatıs",
+  "bonus.double": "x2 puan",
+  "bonus.superJump": "Süper zıplama",
+  "gameover.coins": "Jeton: {coins}"
 }

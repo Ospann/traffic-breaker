@@ -44,3 +44,29 @@ Contested game-design and technical decisions. Each one can be revisited.
   - the seed changes every run.
 - **Oncoming cars in the validator** are simulated exactly as in the game (meeting point × (1 + v_car / v)).
 - **Debug.** `?debug=1&pattern=<id>` loops one pattern; useful for testing ramps and roofs by hand.
+
+## Stage 3
+
+- **Coins.**
+  - Come from pattern markup (lines, arcs, roof and air tracks); the whole field is one InstancedMesh with a pool of 320.
+  - Each coin gives 10 points (× multiplier) and 2% thrust.
+  - A streak counts coins with less than 1.2 s between them (the pitch of the coin sound will follow it in stage 5).
+- **Bonuses on the track.**
+  - They replace a random coin in a pattern's markup, so a bonus always stands where a coin is reachable.
+  - The first one appears after ~260 m, then every 380–560 m.
+  - Type weights: magnet 1.4, x2 1.2, super jump 1.0, full tank 0.8.
+- **Full tank.**
+  - Starts a long boost right away (6 s, up to 8 s with upgrades) and lays an air coin trail ahead along the lanes, switching lanes every ~30 m.
+  - It also fills the thrust meter, so after landing you have one more ordinary boost ready. That's a choice: it can be changed to "empty meter after full tank".
+- **Magnet.** Pulls coins from neighbouring lanes (±1.7 lanes) up to 22 m ahead, including coins in the air.
+- **x2** doubles the score for distance and coins. It multiplies with the mission multiplier (stage 4).
+- **Super jump.**
+  - Jump height 4.6 m (trucks are 3.2), airtime 0.95 s: you can jump over a parked truck or land on its roof.
+  - Physics switches only on the ground, so a jump that's already under way doesn't change its arc.
+- **Shield.**
+  - HUD button or Shift; lasts 12 s; absorbs one crash (including a second light hit while the drone is near).
+  - After the save: 1.5 s of invulnerability, and the car passes through the obstacle.
+  - Light hits don't consume the shield.
+  - Until stage 4 the shield supply lives in memory (`App.inventory`); in debug the G key adds one.
+- **Validator.** It still checks paths without bonuses, without boost and without the shield.
+- **Debug keys:** 1 full tank, 2 magnet, 3 x2, 4 super jump.

@@ -13,12 +13,14 @@ export interface GameOverData {
   distance: number;
   best: number;
   newBest: boolean;
+  coins: number;
 }
 
 export class GameOverScreen extends Screen {
   private readonly title: HTMLDivElement;
   private readonly score: HTMLDivElement;
   private readonly distance: HTMLDivElement;
+  private readonly coins: HTMLDivElement;
   private readonly best: HTMLDivElement;
   private readonly record: HTMLDivElement;
   private readonly again: HTMLButtonElement;
@@ -33,6 +35,7 @@ export class GameOverScreen extends Screen {
     this.title = el('div', cx(styles, 'title'), this.root);
     this.score = el('div', cx(styles, 'score'), this.root);
     this.distance = el('div', cx(styles, 'line'), this.root);
+    this.coins = el('div', cx(styles, 'line'), this.root);
     this.best = el('div', cx(styles, 'line'), this.root);
     this.record = el('div', cx(styles, 'record'), this.root);
     const buttons = el('div', cx(styles, 'actions'), this.root);
@@ -46,6 +49,7 @@ export class GameOverScreen extends Screen {
     setText(this.score, i18n.t('gameover.score', { score: data.score }));
     setText(this.distance, i18n.t('gameover.distance', { meters: Math.floor(data.distance) }));
     setText(this.best, i18n.t('gameover.best', { score: data.best }));
+    setText(this.coins, i18n.t('gameover.coins', { coins: data.coins }));
     setText(this.record, data.newBest ? i18n.t('gameover.newBest') : '');
     setText(this.again, i18n.t('gameover.again'));
     setText(this.menu, i18n.t('gameover.menu'));

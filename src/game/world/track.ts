@@ -3,6 +3,7 @@ import type { Pattern } from '../patterns/pattern-schema';
 import { supportAt, type Support } from '../sim/collision';
 import { laneX } from '../sim/player-motion';
 import { obstacleSpecs, type ObstacleSpec, type ObstacleType } from './entities';
+import { PickupField } from './pickups';
 import { Pool } from './pool';
 
 export interface TrackEntity {
@@ -34,6 +35,7 @@ const RUNWAY = 45;
 
 export class Track {
   readonly active: TrackEntity[] = [];
+  readonly pickups = new PickupField();
   private readonly pool: Pool<TrackEntity>;
   private cursor = RUNWAY;
   private readonly support: Support = { height: 0, ramp: false };
@@ -59,11 +61,12 @@ export class Track {
     );
   }
 
-  reset(): void {
+  reset(seed = 1): void {
     for (const entity of this.active) this.release(entity);
     this.active.length = 0;
     this.cursor = RUNWAY;
     this.source.reset();
+    this.pickups.reset(seed);
   }
 
   clearAhead(fromD: number): void {
@@ -80,6 +83,7 @@ export class Track {
   update(dt: number, speed: number, elapsedSec = 0): void {
     const travelled = speed * dt;
     this.cursor -= travelled;
+    this.pickups.update(travelled);
     for (let i = this.active.length - 1; i >= 0; i -= 1) {
       const entity = this.active[i];
       if (!entity) continue;
@@ -94,6 +98,7 @@ export class Track {
     while (this.cursor < trackBalance.spawnAheadDistance) {
       const pattern = this.source.next(elapsedSec);
       this.spawnPattern(pattern, this.cursor, speed);
+      this.pickups.spawnPattern(pattern, this.cursor);
       this.cursor += pattern.length;
     }
   }

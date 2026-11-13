@@ -25,5 +25,12 @@
   "gameover.menu": "Меню",
   "language.en": "English",
   "language.ru": "Русский",
-  "language.tr": "Türkçe"
+  "language.tr": "Türkçe",
+  "hud.shield": "Щит ×{count}",
+  "hud.shieldActive": "Щит {seconds} с",
+  "bonus.fullTank": "Полный бак",
+  "bonus.magnet": "Магнит",
+  "bonus.double": "x2 очки",
+  "bonus.superJump": "Суперпрыжок",
+  "gameover.coins": "Монеты: {coins}"
 }

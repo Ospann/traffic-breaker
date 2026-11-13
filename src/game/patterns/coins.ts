@@ -29,3 +29,17 @@ export function coinPoints(coins: PatternCoins): CoinPoint[] {
   }
   return points;
 }
+
+const cache = new Map<string, readonly CoinPoint[]>();
+
+export function patternCoinPoints(pattern: {
+  id: string;
+  coins: readonly PatternCoins[];
+}): readonly CoinPoint[] {
+  let points = cache.get(pattern.id);
+  if (!points) {
+    points = pattern.coins.flatMap((group) => coinPoints(group));
+    cache.set(pattern.id, points);
+  }
+  return points;
+}

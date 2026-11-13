@@ -91,3 +91,70 @@ export function difficultyWeights(elapsedSec: number): [number, number, number] 
   const last = points[points.length - 1];
   return [last?.w[0] ?? 1, last?.w[1] ?? 0, last?.w[2] ?? 0];
 }
+
+export const coins = {
+  points: 10,
+  thrustCharge: 0.02,
+  collectHalfX: 1.15,
+  collectHalfZ: 1.6,
+  magnetRangeAhead: 22,
+  magnetRangeX: LANE_WIDTH * 1.7,
+  magnetPullSpeed: 38,
+  streakWindowSec: 1.2,
+} as const;
+
+export type BonusType = 'fullTank' | 'magnet' | 'double' | 'superJump';
+
+export const bonusTypes: readonly BonusType[] = ['fullTank', 'magnet', 'double', 'superJump'];
+
+export const bonuses = {
+  firstAtMeters: 260,
+  spacingMeters: [380, 560] as const,
+  weights: { fullTank: 0.8, magnet: 1.4, double: 1.2, superJump: 1 } satisfies Record<
+    BonusType,
+    number
+  >,
+  duration: {
+    fullTank: { base: 6, perLevel: 0.4 },
+    magnet: { base: 10, perLevel: 2 },
+    double: { base: 10, perLevel: 2 },
+    superJump: { base: 10, perLevel: 2 },
+  } satisfies Record<BonusType, { base: number; perLevel: number }>,
+  maxLevel: 5,
+} as const;
+
+export function bonusDuration(type: BonusType, level: number): number {
+  const spec = bonuses.duration[type];
+  const clamped = Math.min(Math.max(Math.floor(level), 0), bonuses.maxLevel);
+  return spec.base + spec.perLevel * clamped;
+}
+
+export const superJump = {
+  height: 4.6,
+  airSec: 0.95,
+} as const;
+
+export const superJumpGravity = (8 * superJump.height) / (superJump.airSec * superJump.airSec);
+export const superJumpVelocity = (4 * superJump.height) / superJump.airSec;
+
+export const shield = {
+  durationSec: 12,
+  saveInvulnSec: 1.5,
+} as const;
+
+export const airTrail = {
+  y: 4.95,
+  spacing: 3.2,
+  segmentMeters: 30,
+  leadMeters: 12,
+} as const;
+
+export const thrustUpgrade = {
+  chargeSecPerLevel: 3,
+  maxLevel: 5,
+} as const;
+
+export function thrustChargeSec(level: number): number {
+  const clamped = Math.min(Math.max(Math.floor(level), 0), thrustUpgrade.maxLevel);
+  return thrust.chargeSec - thrustUpgrade.chargeSecPerLevel * clamped;
+}

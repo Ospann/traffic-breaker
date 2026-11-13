@@ -95,3 +95,98 @@
     box-shadow: 0 0 calc(var(--u) * 44) #ff2bd6;
   }
 }
+
+.coins {
+  position: absolute;
+  top: calc(var(--u) * 44);
+  left: calc(var(--u) * 30);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 40);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #ffd36a;
+  text-shadow: 0 0 calc(var(--u) * 12) #ff9a1a;
+}
+
+.coinIcon {
+  width: calc(var(--u) * 30);
+  height: calc(var(--u) * 30);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff1b0, #ffc63a 55%, #d98a12);
+  box-shadow: 0 0 calc(var(--u) * 12) #ffc63a;
+}
+
+.multiplier {
+  position: absolute;
+  top: calc(var(--u) * 112);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: calc(var(--u) * 30);
+  font-weight: 900;
+  color: #8a4dff;
+  text-shadow: 0 0 calc(var(--u) * 10) #8a4dff;
+}
+
+.bonuses {
+  position: absolute;
+  top: calc(var(--u) * 180);
+  left: calc(var(--u) * 30);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 10);
+}
+
+.bonus {
+  width: calc(var(--u) * 220);
+  padding: calc(var(--u) * 6) calc(var(--u) * 12);
+  border: calc(var(--u) * 2) solid var(--accent);
+  border-radius: calc(var(--u) * 10);
+  background: rgb(9 4 20 / 0.6);
+  box-shadow: 0 0 calc(var(--u) * 12) var(--accent);
+  font-size: calc(var(--u) * 22);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #f2f4ff;
+}
+
+.bonusBar {
+  margin-top: calc(var(--u) * 6);
+  height: calc(var(--u) * 6);
+  border-radius: calc(var(--u) * 3);
+  background: var(--accent);
+  transform-origin: left center;
+}
+
+.shield {
+  position: absolute;
+  right: calc(var(--u) * 30);
+  bottom: calc(var(--u) * 140);
+  min-width: calc(var(--u) * 150);
+  padding: calc(var(--u) * 14) calc(var(--u) * 18);
+  border: calc(var(--u) * 3) solid #22e6ff;
+  border-radius: calc(var(--u) * 20);
+  background: rgb(9 4 20 / 0.7);
+  box-shadow: 0 0 calc(var(--u) * 18) rgb(34 230 255 / 0.5);
+  color: #f2f4ff;
+  font: inherit;
+  font-size: calc(var(--u) * 26);
+  font-weight: 800;
+  text-transform: uppercase;
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.shield:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: default;
+}
+
+.shieldActive {
+  background: rgb(34 230 255 / 0.3);
+  animation: glow 0.6s ease-in-out infinite alternate;
+}

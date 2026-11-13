@@ -6,7 +6,8 @@ import { listenKeyboard } from '../input/keyboard';
 import { listenTouch } from '../input/touch-input';
 import { patterns } from '../patterns';
 import { services } from '../services';
-import { RunSession } from '../sim/run-session';
+import { bonusTypes, type BonusType } from '../balance';
+import { defaultRunConfig, RunSession } from '../sim/run-session';
 import { DebugOverlay } from '../ui/debug-overlay';
 import { GameOverScreen } from '../ui/game-over-screen';
 import { Hud } from '../ui/hud';
@@ -15,6 +16,7 @@ import { MenuScreen } from '../ui/menu-screen';
 import { PauseScreen } from '../ui/pause-screen';
 import type { WorldView } from '../view/world-view';
 import { PatternGenerator } from '../world/pattern-generator';
+import { randomSeed } from '../world/random';
 import { SequentialSource } from '../world/sequential-source';
 import type { PatternSource } from '../world/track';
 import { StateMachine } from './state-machine';
@@ -24,7 +26,15 @@ export interface RunResult {
   score: number;
   distance: number;
   newBest: boolean;
+  coins: number;
 }
+
+const DEBUG_BONUS_KEYS: Readonly<Record<string, BonusType>> = {
+  Digit1: 'fullTank',
+  Digit2: 'magnet',
+  Digit3: 'double',
+  Digit4: 'superJump',
+};
 
 export class App {
   readonly stage: Stage;
@@ -41,7 +51,14 @@ export class App {
   readonly gameOver: GameOverScreen;
 
   view: WorldView | null = null;
-  lastResult: RunResult = { score: 0, distance: 0, newBest: false };
+  lastResult: RunResult = { score: 0, distance: 0, newBest: false, coins: 0 };
+  inventory = { shields: 0 };
+  private readonly bonusRatios: Record<BonusType, number> = {
+    fullTank: 0,
+    magnet: 0,
+    double: 0,
+    superJump: 0,
+  };
   private crashHandled = false;
 
   constructor(root: HTMLElement) {
@@ -57,7 +74,12 @@ export class App {
       toggleSound: () => this.toggleSound(),
       nextLanguage: () => this.nextLanguage(),
     });
-    this.hud = new Hud(ui, i18n, () => this.pause());
+    this.hud = new Hud(
+      ui,
+      i18n,
+      () => this.pause(),
+      () => this.input('shield'),
+    );
     this.pauseScreen = new PauseScreen(ui, i18n, {
       resume: () => this.machine.go('run'),
       menu: () => this.machine.go('menu'),
@@ -90,6 +112,10 @@ export class App {
       (action) => this.input(action),
       (code) => {
         if (this.debug && code === 'KeyF') this.session.thrust.fill();
+        if (this.debug && code === 'KeyG') this.session.shields += 1;
+        const bonus = DEBUG_BONUS_KEYS[code];
+        if (this.debug && bonus && this.machine.current === 'run')
+          this.session.activateBonus(bonus);
         if (code === 'Escape' || code === 'KeyP') this.pause();
       },
     );
@@ -116,7 +142,11 @@ export class App {
 
   beginRun(): void {
     this.crashHandled = false;
-    this.session.reset();
+    this.session.reset({
+      ...defaultRunConfig,
+      seed: randomSeed(),
+      shields: this.inventory.shields,
+    });
     this.view?.reset();
     this.view?.setMode('run', this.session);
     this.quality.resetTiming();
@@ -158,10 +188,19 @@ export class App {
     this.stage.renderer.render(view.scene, view.rig.camera);
 
     if (state === 'run') {
+      const session = this.session;
+      for (const type of bonusTypes) {
+        this.bonusRatios[type] = session.bonusTimers[type] / session.bonusLengths[type];
+      }
       this.hud.render({
-        score: this.session.score,
-        thrust: this.session.thrust.level,
-        droneNear: this.session.drone.isNear,
+        score: session.score,
+        coins: session.coins,
+        thrust: session.thrust.level,
+        droneNear: session.drone.isNear,
+        multiplier: session.scoreMultiplier,
+        bonuses: this.bonusRatios,
+        shields: session.shields,
+        shieldLeft: session.shieldTimer,
       });
     }
     this.quality.sample(dt, state === 'run');
@@ -186,7 +225,13 @@ export class App {
       data.levelsCompleted += 1;
       data.bestScore = Math.max(data.bestScore, score);
     });
-    this.lastResult = { score, distance: this.session.distance, newBest };
+    this.inventory.shields = this.session.shields;
+    this.lastResult = {
+      score,
+      distance: this.session.distance,
+      newBest,
+      coins: this.session.coins,
+    };
   }
 
   private toggleSound(): void {

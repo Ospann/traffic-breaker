@@ -11,11 +11,14 @@ import { buildBreakerCar, carSockets } from '../art/breaker-car';
 import { buildBlobShadow, CityScenery } from '../art/city';
 import { palette } from '../art/palette';
 import { ParticleSystem } from '../art/particles';
+import { buildShieldBubble } from '../art/pickups';
 import { buildPoliceDrone, type DroneModel } from '../art/police-drone';
 import { createGlowTexture, createWindowTexture } from '../art/textures';
+import type { BonusType } from '../balance';
 import { CameraRig } from '../engine/camera-rig';
 import type { QualityLevel } from '../engine/quality';
 import type { RunSession, SessionEvent } from '../sim/run-session';
+import { PickupView } from './pickup-view';
 import { TrackView } from './track-view';
 
 export type ViewMode = 'menu' | 'run';
@@ -27,10 +30,18 @@ function rand(min: number, max: number): number {
   return min + Math.random() * (max - min);
 }
 
+const bonusColor: Readonly<Record<BonusType, number>> = {
+  fullTank: palette.amber,
+  magnet: palette.red,
+  double: palette.violet,
+  superJump: palette.lime,
+};
+
 export class WorldView {
   readonly scene = new Scene();
   readonly rig = new CameraRig();
   readonly track: TrackView;
+  readonly pickups: PickupView;
   readonly particles: ParticleSystem;
   private readonly fog: Fog;
   private readonly city: CityScenery;
@@ -38,6 +49,7 @@ export class WorldView {
   private readonly carBody: Group;
   private readonly shadow: Mesh;
   private readonly drone: DroneModel;
+  private readonly shieldBubble = buildShieldBubble();
 
   private mode: ViewMode = 'menu';
   private menuBlend = 1;
@@ -71,6 +83,8 @@ export class WorldView {
     this.scene.add(this.drone.root);
 
     this.track = new TrackView(this.scene);
+    this.pickups = new PickupView(this.scene);
+    this.car.add(this.shieldBubble);
     this.particles = new ParticleSystem(createGlowTexture(), PARTICLE_CAPACITY);
     this.scene.add(this.particles.points);
 
@@ -117,7 +131,12 @@ export class WorldView {
     for (const event of events) {
       switch (event.type) {
         case 'jump':
-          this.burstUnder(x, y, 18, palette.amber);
+          if (session.bonusTimers.superJump > 0) {
+            this.burstUnder(x, y, 34, palette.lime);
+            this.rig.shake(0.15);
+          } else {
+            this.burstUnder(x, y, 18, palette.amber);
+          }
           break;
         case 'land':
           this.sparks(x, y, 16, palette.amber);
@@ -153,6 +172,22 @@ export class WorldView {
             event.entity.type === 'hologram' ? palette.magenta : palette.orange,
           );
           break;
+        case 'coin':
+          this.coinSparkle(event.x, event.y, event.streak);
+          break;
+        case 'bonus':
+          this.rig.shake(event.bonus === 'fullTank' ? 0.7 : 0.2);
+          this.sparks(x, y + 1, 30, bonusColor[event.bonus]);
+          break;
+        case 'shieldOn':
+          this.sparks(x, y + 0.6, 24, palette.cyan);
+          break;
+        case 'shieldSave':
+          this.rig.shake(0.6);
+          this.sparks(x, y + 0.6, 50, palette.cyan);
+          break;
+        case 'bonusEnd':
+        case 'shieldEnd':
         case 'laneChange':
         case 'duck':
         case 'dashEnd':
@@ -216,6 +251,8 @@ export class WorldView {
     );
     this.particles.update(dt);
     this.track.update(dt);
+    this.pickups.update(dt, running ? session.track.pickups : null);
+    this.updateShield(session, running);
 
     this.rig.update(dt, {
       x: carX,
@@ -279,6 +316,32 @@ export class WorldView {
         });
       }
     }
+  }
+
+  private updateShield(session: RunSession | null, running: boolean): void {
+    const active = running && session !== null && session.shieldActive;
+    this.shieldBubble.visible = active;
+    if (!active) return;
+    const left = session.shieldTimer;
+    const blink = left < 2 ? (Math.sin(this.time * 30) > 0 ? 1 : 0.3) : 1;
+    const material = this.shieldBubble.material;
+    if ('opacity' in material) material.opacity = (0.16 + 0.08 * Math.sin(this.time * 8)) * blink;
+  }
+
+  private coinSparkle(x: number, y: number, streak: number): void {
+    const count = Math.min(4 + Math.floor(streak / 5), 10);
+    this.particles.burst(count, () => ({
+      x: x + rand(-0.2, 0.2),
+      y: y + rand(-0.2, 0.2),
+      z: rand(-0.5, 0.5),
+      vx: rand(-2.5, 2.5),
+      vy: rand(1, 4),
+      vz: rand(2, 8),
+      color: 0xffd36a,
+      size: rand(0.18, 0.3),
+      life: rand(0.2, 0.35),
+      drag: 2,
+    }));
   }
 
   private burstUnder(x: number, y: number, count: number, color: number): void {

@@ -25,5 +25,12 @@
   "gameover.menu": "Menu",
   "language.en": "English",
   "language.ru": "Русский",
-  "language.tr": "Türkçe"
+  "language.tr": "Türkçe",
+  "hud.shield": "Shield ×{count}",
+  "hud.shieldActive": "Shield {seconds}s",
+  "bonus.fullTank": "Full tank",
+  "bonus.magnet": "Magnet",
+  "bonus.double": "x2 score",
+  "bonus.superJump": "Super jump",
+  "gameover.coins": "Coins: {coins}"
 }

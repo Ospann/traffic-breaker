@@ -42,6 +42,7 @@ export class PlayerMotion {
   invulnTimer = 0;
   private slamPending = false;
   private dashRiseFrom = 0;
+  private dashLength: number = thrust.dashSec;
   onRamp = false;
   gliding = false;
 
@@ -82,6 +83,7 @@ export class PlayerMotion {
     this.invulnTimer = other.invulnTimer;
     this.slamPending = other.slamPending;
     this.dashRiseFrom = other.dashRiseFrom;
+    this.dashLength = other.dashLength;
     this.onRamp = other.onRamp;
     this.gliding = other.gliding;
     this.tuning = other.tuning;
@@ -157,18 +159,28 @@ export class PlayerMotion {
         }
         return;
       case 'dash':
-        this.mode = 'dash';
-        this.gliding = false;
-        this.onRamp = false;
-        this.dashTimer = thrust.dashSec;
-        this.dashRiseFrom = this.y;
-        this.duckTimer = 0;
-        this.vy = 0;
-        this.events.push('dashStart');
+        this.startDash(thrust.dashSec);
         return;
       case 'shield':
         return;
     }
+  }
+
+  startDash(duration: number): void {
+    if (this.mode === 'dash') {
+      this.dashTimer = Math.max(this.dashTimer, duration);
+      this.dashLength = Math.max(this.dashLength, duration);
+      return;
+    }
+    this.mode = 'dash';
+    this.gliding = false;
+    this.onRamp = false;
+    this.dashTimer = duration;
+    this.dashLength = duration;
+    this.dashRiseFrom = this.y;
+    this.duckTimer = 0;
+    this.vy = 0;
+    this.events.push('dashStart');
   }
 
   bounceBack(): void {
@@ -213,7 +225,7 @@ export class PlayerMotion {
         break;
       case 'dash': {
         this.dashTimer -= dt;
-        const risen = thrust.dashSec - this.dashTimer;
+        const risen = this.dashLength - this.dashTimer;
         const k = Math.min(risen / thrust.dashRiseSec, 1);
         const eased = 1 - (1 - k) ** 3;
         this.y = this.dashRiseFrom + (thrust.dashAltitude - this.dashRiseFrom) * eased;
