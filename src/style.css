@@ -1,0 +1,65 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #11121a;
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game canvas {
+  display: block;
+  touch-action: none;
+}
+
+.mock-ad {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: rgba(10, 10, 16, 0.92);
+  color: #fff;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  touch-action: manipulation;
+}
+
+.mock-ad__title {
+  font-size: 22px;
+  opacity: 0.8;
+}
+
+.mock-ad__timer {
+  font-size: 56px;
+  font-weight: 700;
+}
+
+.mock-ad__button {
+  min-width: 200px;
+  padding: 14px 28px;
+  border: 0;
+  border-radius: 12px;
+  background: #4f7cff;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}

@@ -1,0 +1,66 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": {
+    "typeAware": true
+  },
+  "plugins": ["typescript", "unicorn", "oxc", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "ignorePatterns": ["dist", "release", "node_modules"],
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "unicorn/filename-case": ["error", { "case": "kebabCase" }],
+    "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+    "import/no-named-as-default": "off",
+    "import/no-named-as-default-member": "off",
+    "import/no-unassigned-import": ["warn", { "allow": ["**/*.css"] }]
+  },
+  "overrides": [
+    {
+      "files": ["src/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@game/*", "**/game", "**/game/**", "**/i18n/*.json"],
+                "message": "src/core must not depend on src/game: pass game-specific data in from the game layer."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/game/**", "src/i18n/**", "src/main.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/core", "**/core/**", "!@core/**"],
+                "message": "Import core only through the @core/* alias."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["scripts/**", "tests/**", "*.config.ts"],
+      "env": { "node": true },
+      "rules": { "no-console": "off" }
+    }
+  ]
+}
