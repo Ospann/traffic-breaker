@@ -3,17 +3,66 @@ import { ModelBuilder } from './model-builder';
 import { palette } from './palette';
 import { box, cylinder, extrudeSide, taperWidth, torus } from './shapes';
 
+export type CarKit = 'stock' | 'aero' | 'blade' | 'rally';
+
 export interface CarSkin {
   body: number;
   neon: number;
   trim: number;
+  kit: CarKit;
 }
 
 export const defaultCarSkin: CarSkin = {
   body: 0x3d63c9,
   neon: palette.cyan,
   trim: 0x15161f,
+  kit: 'stock',
 };
+
+function addKit(b: ModelBuilder, skin: CarSkin): void {
+  if (skin.kit === 'aero') {
+    b.add(box(1.9, 0.05, 0.42), skin.trim, { position: [0, 1.12, 1.72], rotation: [-0.12, 0, 0] });
+    for (const x of [-0.55, 0.55]) {
+      b.add(box(0.06, 0.4, 0.18), skin.trim, { position: [x, 0.92, 1.72] });
+    }
+    for (const x of [-0.95, 0.95]) {
+      b.add(box(0.04, 0.3, 0.44), skin.trim, { position: [x, 1.12, 1.72] });
+    }
+    b.add(box(1.7, 0.05, 0.32), skin.trim, { position: [0, 0.2, -2.02] });
+    b.addGlow(box(1.88, 0.03, 0.04), skin.neon, { position: [0, 1.15, 1.5] });
+    b.addGlow(box(1.6, 0.03, 0.04), skin.neon, { position: [0, 0.22, -2.17] });
+  } else if (skin.kit === 'blade') {
+    for (const side of [-1, 1]) {
+      b.add(box(0.05, 0.42, 0.9), skin.trim, {
+        position: [side * 0.82, 0.92, 1.35],
+        rotation: [0.35, 0, 0],
+      });
+      b.addGlow(box(0.06, 0.04, 0.8), skin.neon, {
+        position: [side * 0.82, 1.08, 1.4],
+        rotation: [0.35, 0, 0],
+      });
+      b.add(box(0.12, 0.08, 1.6), skin.trim, { position: [side * 0.95, 0.3, -0.1] });
+      b.addGlow(box(0.03, 0.03, 1.5), skin.neon, { position: [side * 1.01, 0.33, -0.1] });
+      b.add(box(0.3, 0.04, 0.16), skin.trim, {
+        position: [side * 0.72, 0.36, -1.85],
+        rotation: [0, side * 0.3, side * 0.2],
+      });
+    }
+  } else if (skin.kit === 'rally') {
+    b.add(box(1.2, 0.08, 0.1), skin.trim, { position: [0, 1.0, 0.78] });
+    for (let i = 0; i < 4; i += 1) {
+      b.addGlow(box(0.18, 0.12, 0.06), 0xfff2c0, { position: [-0.42 + i * 0.28, 1.08, 0.72] });
+    }
+    b.add(box(1.5, 0.08, 0.08), skin.trim, { position: [0, 0.32, -2.06] });
+    for (const x of [-0.55, 0.55]) {
+      b.add(box(0.08, 0.3, 0.08), skin.trim, { position: [x, 0.42, -2.06] });
+    }
+    for (const side of [-1, 1]) {
+      b.add(box(0.3, 0.28, 0.03), skin.trim, { position: [side * 0.72, 0.18, 1.62] });
+    }
+    b.addGlow(box(1.3, 0.04, 0.04), skin.neon, { position: [0, 0.42, -2.08] });
+  }
+}
 
 export const carSockets = {
   rearNozzles: [
@@ -140,5 +189,6 @@ export function buildBreakerCar(skin: CarSkin = defaultCarSkin): Group {
     b.addGlow(cylinder(0.17, 0.04, 10), skin.neon, { position: [x, y + 0.12, z] });
   }
 
+  addKit(b, skin);
   return b.build();
 }

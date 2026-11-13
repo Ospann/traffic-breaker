@@ -40,6 +40,15 @@
   text-shadow: 0 0 calc(var(--u) * 14) #ff6a1a;
 }
 
+.progress {
+  min-height: calc(var(--u) * 36);
+  font-size: calc(var(--u) * 28);
+  font-weight: 800;
+  text-align: center;
+  color: #8dff3a;
+  text-shadow: 0 0 calc(var(--u) * 12) #8dff3a;
+}
+
 .actions {
   margin-top: calc(var(--u) * 40);
   display: flex;

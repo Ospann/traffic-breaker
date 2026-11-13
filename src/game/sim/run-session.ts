@@ -16,9 +16,10 @@ import {
 } from '../balance';
 import type { Action } from '../input/actions';
 import { InputBuffer } from '../input/input-buffer';
+import type { RunMetrics } from '../progression/missions';
 import type { Bonus } from '../world/pickups';
 import { Track, type PatternSource, type TrackEntity } from '../world/track';
-import { classifyHit, isLightHit, touches, type PlayerPose } from './collision';
+import { classifyHit, isLightHit, overlapsFootprint, touches, type PlayerPose } from './collision';
 import { DroneChaser } from './drone';
 import { PlayerMotion, type MotionEvent, type MotionTuning } from './player-motion';
 import { ThrustMeter } from './thrust-meter';
@@ -66,10 +67,24 @@ export interface RunStats {
   bonuses: number;
   lightHits: number;
   shieldsUsed: number;
+  barriersJumped: number;
+  ducksUnder: number;
+  rampLaunches: number;
 }
 
 function emptyStats(): RunStats {
-  return { jumps: 0, ducks: 0, dashes: 0, roofs: 0, bonuses: 0, lightHits: 0, shieldsUsed: 0 };
+  return {
+    jumps: 0,
+    ducks: 0,
+    dashes: 0,
+    roofs: 0,
+    bonuses: 0,
+    lightHits: 0,
+    shieldsUsed: 0,
+    barriersJumped: 0,
+    ducksUnder: 0,
+    rampLaunches: 0,
+  };
 }
 
 export class RunSession {
@@ -347,7 +362,10 @@ export class RunSession {
         { x: entity.x, d: entity.prevD },
         spec,
       );
-      if (!kind) continue;
+      if (!kind) {
+        this.noteClearance(entity);
+        continue;
+      }
       entity.ignored = true;
       if (this.motion.isInvulnerable) continue;
       if (isLightHit(kind) && this.drone.lightHit() === 'warned') {
@@ -364,6 +382,35 @@ export class RunSession {
       this.crash(entity);
       return;
     }
+  }
+
+  private noteClearance(entity: TrackEntity): void {
+    if (entity.cleared || entity.spec.roof) return;
+    if (!overlapsFootprint(this.pose, { x: entity.x, d: entity.d }, entity.spec)) return;
+    const type = entity.type;
+    const airborne = this.motion.mode === 'air';
+    if (airborne && (type === 'lowBarrier' || type === 'midBarrier')) {
+      entity.cleared = true;
+      this.stats.barriersJumped += 1;
+    } else if (this.motion.isDucking && (type === 'highSign' || type === 'midBarrier')) {
+      entity.cleared = true;
+      this.stats.ducksUnder += 1;
+    }
+  }
+
+  get metrics(): RunMetrics {
+    return {
+      coins: this.coins,
+      distance: Math.floor(this.distance),
+      score: this.score,
+      jumps: this.stats.jumps,
+      barriersJumped: this.stats.barriersJumped,
+      ducksUnder: this.stats.ducksUnder,
+      dashes: this.stats.dashes,
+      roofs: this.stats.roofs,
+      rampLaunches: this.stats.rampLaunches,
+      bonuses: this.stats.bonuses,
+    };
   }
 
   private saveWithShield(entity: TrackEntity): void {
@@ -392,7 +439,10 @@ export class RunSession {
   }
 
   private flushMotionEvents(): void {
-    for (const type of this.motion.events) this.events.push({ type });
+    for (const type of this.motion.events) {
+      if (type === 'rampLaunch') this.stats.rampLaunches += 1;
+      this.events.push({ type });
+    }
     this.motion.events.length = 0;
   }
 }

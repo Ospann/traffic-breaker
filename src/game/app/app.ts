@@ -6,10 +6,24 @@ import { listenKeyboard } from '../input/keyboard';
 import { listenTouch } from '../input/touch-input';
 import { patterns } from '../patterns';
 import { services } from '../services';
+import type { CarKit } from '../art/breaker-car';
 import { bonusTypes, type BonusType } from '../balance';
+import { findSkin } from '../progression/catalog';
+import {
+  applyRunResult,
+  buyShield,
+  buySkin,
+  buyUpgrade,
+  grantShield,
+  selectSkin,
+  type RunSummary,
+} from '../progression/economy';
+import { liveCompleted, missionSet } from '../progression/missions';
+import type { GameSave } from '../save';
 import { defaultRunConfig, RunSession } from '../sim/run-session';
 import { DebugOverlay } from '../ui/debug-overlay';
 import { GameOverScreen } from '../ui/game-over-screen';
+import { GarageScreen } from '../ui/garage-screen';
 import { Hud } from '../ui/hud';
 import { LoadingScreen } from '../ui/loading-screen';
 import { MenuScreen } from '../ui/menu-screen';
@@ -27,6 +41,8 @@ export interface RunResult {
   distance: number;
   newBest: boolean;
   coins: number;
+  missionsDone: number;
+  multiplierUp: number | null;
 }
 
 const DEBUG_BONUS_KEYS: Readonly<Record<string, BonusType>> = {
@@ -49,10 +65,19 @@ export class App {
   readonly hud: Hud;
   readonly pauseScreen: PauseScreen;
   readonly gameOver: GameOverScreen;
+  readonly garage: GarageScreen;
 
   view: WorldView | null = null;
-  lastResult: RunResult = { score: 0, distance: 0, newBest: false, coins: 0 };
-  inventory = { shields: 0 };
+  lastResult: RunResult = {
+    score: 0,
+    distance: 0,
+    newBest: false,
+    coins: 0,
+    missionsDone: 0,
+    multiplierUp: null,
+  };
+  private liveDone: boolean[] = [];
+  private missionCheckTimer = 0;
   private readonly bonusRatios: Record<BonusType, number> = {
     fullTank: 0,
     magnet: 0,
@@ -71,6 +96,7 @@ export class App {
     this.loading = new LoadingScreen(ui, i18n);
     this.menu = new MenuScreen(ui, i18n, {
       play: () => this.machine.go('run'),
+      garage: () => this.machine.go('garage'),
       toggleSound: () => this.toggleSound(),
       nextLanguage: () => this.nextLanguage(),
     });
@@ -87,6 +113,14 @@ export class App {
     this.gameOver = new GameOverScreen(ui, i18n, {
       again: () => this.machine.go('run'),
       menu: () => this.machine.go('menu'),
+    });
+
+    this.garage = new GarageScreen(ui, i18n, {
+      buyUpgrade: (kind) => this.purchase((data) => buyUpgrade(data, kind)),
+      buySkin: (id) => this.purchase((data) => buySkin(data, id)),
+      selectSkin: (id) => this.purchase((data) => selectSkin(data, id)),
+      buyShield: () => this.purchase((data) => buyShield(data)),
+      back: () => this.machine.go('menu'),
     });
 
     this.quality = new QualityGovernor((level) => {
@@ -112,7 +146,8 @@ export class App {
       (action) => this.input(action),
       (code) => {
         if (this.debug && code === 'KeyF') this.session.thrust.fill();
-        if (this.debug && code === 'KeyG') this.session.shields += 1;
+        if (this.debug && code === 'KeyG') this.debugGrantShield();
+        if (this.debug && code === 'KeyC') this.purchase((data) => void (data.coins += 1000));
         const bonus = DEBUG_BONUS_KEYS[code];
         if (this.debug && bonus && this.machine.current === 'run')
           this.session.activateBonus(bonus);
@@ -132,6 +167,23 @@ export class App {
     this.session.track.listener = view.track;
     view.setQuality(this.quality.current);
     view.setViewport(this.stage.size.width, this.stage.size.height, this.stage.pixelRatio);
+    this.applyLook();
+  }
+
+  applyLook(): void {
+    const skins = services().save.data.skins;
+    const kitId = skins.kit.replace('kit.', '');
+    const kit: CarKit =
+      kitId === 'aero' || kitId === 'blade' || kitId === 'rally' ? kitId : 'stock';
+    this.view?.setLook({
+      neon: skinColor(skins.neon, 0x22e6ff),
+      kit,
+      flame: skinColor(skins.flame, 0xff6a1a),
+    });
+  }
+
+  renderGarage(): void {
+    this.garage.render(services().save.data);
   }
 
   pause(): void {
@@ -142,11 +194,22 @@ export class App {
 
   beginRun(): void {
     this.crashHandled = false;
+    const data = services().save.data;
     this.session.reset({
       ...defaultRunConfig,
       seed: randomSeed(),
-      shields: this.inventory.shields,
+      shields: data.shields,
+      scoreMultiplier: data.multiplier,
+      thrustLevel: data.upgrades.thrust,
+      upgrades: {
+        fullTank: data.upgrades.fullTank,
+        magnet: data.upgrades.magnet,
+        double: data.upgrades.double,
+        superJump: data.upgrades.superJump,
+      },
     });
+    this.liveDone = [...data.missions.done];
+    this.missionCheckTimer = 0;
     this.view?.reset();
     this.view?.setMode('run', this.session);
     this.quality.resetTiming();
@@ -154,8 +217,14 @@ export class App {
   }
 
   renderMenu(): void {
-    const { save } = services();
-    this.menu.render({ best: save.data.bestScore, soundEnabled: save.data.soundEnabled });
+    const { data } = services().save;
+    this.menu.render({
+      best: data.bestScore,
+      coins: data.coins,
+      soundEnabled: data.soundEnabled,
+      missions: data.missions,
+      multiplier: data.multiplier,
+    });
   }
 
   private input(action: Action): void {
@@ -202,6 +271,7 @@ export class App {
         shields: session.shields,
         shieldLeft: session.shieldTimer,
       });
+      this.checkMissions(dt);
     }
     this.quality.sample(dt, state === 'run');
     this.debug?.update(dt, this.stage.renderer, {
@@ -219,19 +289,58 @@ export class App {
     gameplay.stop();
     platform.levelFail({ level: 'run' });
     ads.markLevelCompleted();
-    const score = this.session.score;
-    const newBest = score > save.data.bestScore;
+    const session = this.session;
+    const holder: { summary: RunSummary | null } = { summary: null };
     save.update((data) => {
-      data.levelsCompleted += 1;
-      data.bestScore = Math.max(data.bestScore, score);
+      holder.summary = applyRunResult(data, {
+        score: session.score,
+        coins: session.coins,
+        shieldsLeft: session.shields,
+        metrics: session.metrics,
+      });
     });
-    this.inventory.shields = this.session.shields;
+    const result = holder.summary;
     this.lastResult = {
-      score,
-      distance: this.session.distance,
-      newBest,
-      coins: this.session.coins,
+      score: session.score,
+      distance: session.distance,
+      newBest: result?.newBest ?? false,
+      coins: session.coins,
+      missionsDone: result?.completedMissions.length ?? 0,
+      multiplierUp: result?.multiplierUp ? result.multiplier : null,
     };
+  }
+
+  private checkMissions(dt: number): void {
+    this.missionCheckTimer -= dt;
+    if (this.missionCheckTimer > 0) return;
+    this.missionCheckTimer = 0.3;
+    const { save, i18n } = services();
+    const missions = save.data.missions;
+    const done = liveCompleted(missions, this.session.metrics);
+    const specs = missionSet(missions.set);
+    done.forEach((isDone, index) => {
+      if (!isDone || this.liveDone[index]) return;
+      this.liveDone[index] = true;
+      const spec = specs[index];
+      if (!spec) return;
+      this.hud.showToast(
+        i18n.t('hud.missionDone'),
+        i18n.t(`mission.${spec.metric}.${spec.scope}`, { n: spec.target }),
+      );
+    });
+  }
+
+  private purchase(action: (data: GameSave) => unknown): void {
+    services().save.update((data) => {
+      action(data);
+    });
+    this.renderGarage();
+    this.applyLook();
+  }
+
+  private debugGrantShield(): void {
+    if (this.machine.current === 'run') this.session.shields += 1;
+    else this.purchase((data) => grantShield(data));
   }
 
   private toggleSound(): void {
@@ -251,6 +360,10 @@ export class App {
     this.renderMenu();
     this.hud.refreshTexts();
   }
+}
+
+function skinColor(id: string, fallback: number): number {
+  return findSkin(id)?.color ?? fallback;
 }
 
 function createPatternSource(): PatternSource {

@@ -96,3 +96,8 @@ export function supportAt(
   }
   return out;
 }
+
+export function overlapsFootprint(p: PlayerPose, o: ObstaclePose, spec: ObstacleSpec): boolean {
+  const [xo, zo] = overlaps(p, o, spec);
+  return xo > 0 && zo > 0;
+}

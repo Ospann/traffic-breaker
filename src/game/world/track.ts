@@ -17,6 +17,7 @@ export interface TrackEntity {
   prevD: number;
   ignored: boolean;
   touched: boolean;
+  cleared: boolean;
   active: boolean;
 }
 
@@ -55,6 +56,7 @@ export class Track {
         prevD: 0,
         ignored: false,
         touched: false,
+        cleared: false,
         active: false,
       }),
       TRACK_ENTITY_CAPACITY,
@@ -124,6 +126,7 @@ export class Track {
       entity.prevD = entity.d;
       entity.ignored = false;
       entity.touched = false;
+      entity.cleared = false;
       entity.active = true;
       this.active.push(entity);
       this.listener?.spawn(entity);

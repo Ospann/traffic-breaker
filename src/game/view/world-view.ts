@@ -1,13 +1,14 @@
 import {
+  Color,
   DirectionalLight,
   Fog,
   Group,
   HemisphereLight,
+  Mesh,
   Scene,
-  type Mesh,
   type WebGLRenderer,
 } from 'three';
-import { buildBreakerCar, carSockets } from '../art/breaker-car';
+import { buildBreakerCar, carSockets, defaultCarSkin, type CarKit } from '../art/breaker-car';
 import { buildBlobShadow, CityScenery } from '../art/city';
 import { palette } from '../art/palette';
 import { ParticleSystem } from '../art/particles';
@@ -21,7 +22,7 @@ import type { RunSession, SessionEvent } from '../sim/run-session';
 import { PickupView } from './pickup-view';
 import { TrackView } from './track-view';
 
-export type ViewMode = 'menu' | 'run';
+export type ViewMode = 'menu' | 'run' | 'garage';
 
 const MENU_SPEED = 9;
 const PARTICLE_CAPACITY = 420;
@@ -37,6 +38,12 @@ const bonusColor: Readonly<Record<BonusType, number>> = {
   superJump: palette.lime,
 };
 
+export interface CarLook {
+  neon: number;
+  kit: CarKit;
+  flame: number;
+}
+
 export class WorldView {
   readonly scene = new Scene();
   readonly rig = new CameraRig();
@@ -46,13 +53,17 @@ export class WorldView {
   private readonly fog: Fog;
   private readonly city: CityScenery;
   private readonly car = new Group();
-  private readonly carBody: Group;
+  private carBody: Group;
+  private flameColor: number = palette.orange;
+  private flameHot: number = palette.amber;
+  private exhaustColor: number = palette.cyan;
   private readonly shadow: Mesh;
   private readonly drone: DroneModel;
   private readonly shieldBubble = buildShieldBubble();
 
   private mode: ViewMode = 'menu';
   private menuBlend = 1;
+  private garageBlend = 0;
   private dashBlend = 0;
   private time = 0;
   private lastDistance = 0;
@@ -89,6 +100,18 @@ export class WorldView {
     this.scene.add(this.particles.points);
 
     this.rig.snap({ x: 0, y: 0, dash: 0, menu: 1 });
+  }
+
+  setLook(look: CarLook): void {
+    this.car.remove(this.carBody);
+    this.carBody.traverse((child) => {
+      if (child instanceof Mesh) child.geometry.dispose();
+    });
+    this.carBody = buildBreakerCar({ ...defaultCarSkin, neon: look.neon, kit: look.kit });
+    this.car.add(this.carBody);
+    this.exhaustColor = look.neon;
+    this.flameColor = look.flame;
+    this.flameHot = new Color(look.flame).lerp(new Color(0xffffff), 0.45).getHex();
   }
 
   setQuality(level: QualityLevel): void {
@@ -135,7 +158,7 @@ export class WorldView {
             this.burstUnder(x, y, 34, palette.lime);
             this.rig.shake(0.15);
           } else {
-            this.burstUnder(x, y, 18, palette.amber);
+            this.burstUnder(x, y, 18, this.flameHot);
           }
           break;
         case 'land':
@@ -151,7 +174,7 @@ export class WorldView {
           break;
         case 'dashStart':
           this.rig.shake(0.7);
-          this.burstUnder(x, y, 40, palette.orange);
+          this.burstUnder(x, y, 40, this.flameColor);
           break;
         case 'lightHit':
           this.rig.shake(0.55);
@@ -201,6 +224,8 @@ export class WorldView {
     this.time += dt;
     const running = this.mode === 'run' && session !== null;
     this.menuBlend += ((running ? 0 : 1) - this.menuBlend) * Math.min(1, dt * 2.5);
+    const garageTarget = this.mode === 'garage' ? 1 : 0;
+    this.garageBlend += (garageTarget - this.garageBlend) * Math.min(1, dt * 3);
 
     let travelled = MENU_SPEED * dt;
     if (running) {
@@ -259,6 +284,8 @@ export class WorldView {
       y: Math.min(carY, 4.5),
       dash: this.dashBlend,
       menu: this.menuBlend,
+      garage: this.garageBlend,
+      orbit: 2.2 + 0.6 * Math.sin(this.time * 0.25),
     });
   }
 
@@ -293,7 +320,11 @@ export class WorldView {
         vx: rand(-0.4, 0.4),
         vy: rand(-0.2, 0.4),
         vz: dashing ? rand(16, 24) : rand(6, 10),
-        color: dashing ? (Math.random() < 0.5 ? palette.orange : palette.amber) : palette.cyan,
+        color: dashing
+          ? Math.random() < 0.5
+            ? this.flameColor
+            : this.flameHot
+          : this.exhaustColor,
         size: dashing ? rand(0.7, 1.1) : rand(0.25, 0.4),
         life: dashing ? rand(0.25, 0.4) : rand(0.12, 0.22),
         drag: 2,
@@ -308,7 +339,7 @@ export class WorldView {
           vx: rand(-0.6, 0.6),
           vy: rand(-9, -5),
           vz: rand(4, 8),
-          color: palette.magenta,
+          color: this.flameColor,
           size: rand(0.5, 0.8),
           life: rand(0.2, 0.32),
           drag: 3,

@@ -14,6 +14,8 @@ export interface GameOverData {
   best: number;
   newBest: boolean;
   coins: number;
+  missionsDone: number;
+  multiplierUp: number | null;
 }
 
 export class GameOverScreen extends Screen {
@@ -23,6 +25,7 @@ export class GameOverScreen extends Screen {
   private readonly coins: HTMLDivElement;
   private readonly best: HTMLDivElement;
   private readonly record: HTMLDivElement;
+  private readonly progress: HTMLDivElement;
   private readonly again: HTMLButtonElement;
   private readonly menu: HTMLButtonElement;
 
@@ -38,6 +41,7 @@ export class GameOverScreen extends Screen {
     this.coins = el('div', cx(styles, 'line'), this.root);
     this.best = el('div', cx(styles, 'line'), this.root);
     this.record = el('div', cx(styles, 'record'), this.root);
+    this.progress = el('div', cx(styles, 'progress'), this.root);
     const buttons = el('div', cx(styles, 'actions'), this.root);
     this.again = createButton(buttons, 'primary', () => actions.again());
     this.menu = createButton(buttons, 'secondary', () => actions.menu());
@@ -51,6 +55,14 @@ export class GameOverScreen extends Screen {
     setText(this.best, i18n.t('gameover.best', { score: data.best }));
     setText(this.coins, i18n.t('gameover.coins', { coins: data.coins }));
     setText(this.record, data.newBest ? i18n.t('gameover.newBest') : '');
+    const lines: string[] = [];
+    if (data.missionsDone > 0) {
+      lines.push(i18n.t('gameover.missionsDone', { count: data.missionsDone }));
+    }
+    if (data.multiplierUp !== null) {
+      lines.push(i18n.t('gameover.multiplierUp', { n: data.multiplierUp }));
+    }
+    setText(this.progress, lines.join(' · '));
     setText(this.again, i18n.t('gameover.again'));
     setText(this.menu, i18n.t('gameover.menu'));
   }

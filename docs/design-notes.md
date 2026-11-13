@@ -70,3 +70,30 @@ Contested game-design and technical decisions. Each one can be revisited.
   - Until stage 4 the shield supply lives in memory (`App.inventory`); in debug the G key adds one.
 - **Validator.** It still checks paths without bonuses, without boost and without the shield.
 - **Debug keys:** 1 full tank, 2 magnet, 3 x2, 4 super jump.
+
+## Stage 4
+
+- **Missions** (`src/game/progression/missions.ts`):
+  - 10 sets of 3 missions. After the 10th, the sets repeat with targets ×1.5, ×2, …
+  - Two kinds: "in one run" (`run`) and "in total" (`total`), which accumulates across runs.
+  - Progress and set completion are committed at the end of a run. During the run a toast shows when a mission is complete.
+  - The multiplier rises by 1 for each completed set, capped at ×30, and takes effect from the next run.
+  - "Jumped a barrier" means the car passed over a low or mid barrier while airborne. "Ducked under" means it passed under a sign or mid barrier while ducking. A ramp launch counts the moment the car leaves the ramp.
+- **Economy** (`src/game/progression/economy.ts`, catalog in `catalog.ts`):
+  - **Upgrades:** 5 kinds (boost charge plus the 4 bonuses), 5 levels each, prices 200 / 500 / 1000 / 2000 / 4000.
+    - Boost charge: 30 → 15 s.
+    - Full tank: 6 → 8 s.
+    - Magnet, x2 and super jump: 10 → 20 s.
+  - **Skins:**
+    - neon colour: 6 options, 0–800;
+    - body kit (stock / aero / blade / rally): 0–1200;
+    - flame colour: 5 options, 0–700.
+    - The neon tints the trim strips and the cruising exhaust; the flame tints the boost and jumps.
+  - **Shields:** 350 coins each, stock up to 9.
+  - A typical early run brings 20–100 coins, so the first upgrade comes after 2–5 runs. Worth checking against real play.
+- **Save v3** (`src/game/save.ts`):
+  - Fields: record, coins, shields, upgrades, skins, missions, multiplier, tutorialDone, plus the old fields (sound, language, run count).
+  - Migration 2→3 keeps the old fields. It sets `tutorialDone` if the player has already played.
+  - On load, `sanitizeSave` checks types and ranges: unknown skins are dropped, levels are clamped, a wrong language is reset.
+- **Garage** — a separate state. The camera slowly circles the car, and every purchase or choice applies to the car straight away.
+- **Debug:** the C key adds 1000 coins; G adds a shield (in a run it goes to the current session, outside a run it is saved).

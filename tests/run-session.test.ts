@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { player } from '../src/game/balance';
 import { patterns } from '../src/game/patterns';
-import type { Pattern } from '../src/game/patterns/pattern-schema';
+import { parsePattern, type Pattern } from '../src/game/patterns/pattern-schema';
 import { laneX } from '../src/game/sim/player-motion';
 import { RunSession } from '../src/game/sim/run-session';
 import { obstacleSpecs } from '../src/game/world/entities';
@@ -64,5 +64,57 @@ describe('RunSession', () => {
     expect(track.supportHeight(laneX(1), truck.y1 - player.roofStepTolerance / 2)).toBe(truck.y1);
     expect(track.supportHeight(laneX(1), 0)).toBe(0);
     expect(track.supportHeight(laneX(0), truck.y1 + 1)).toBe(0);
+  });
+});
+
+function nearest(session: RunSession): number {
+  return Math.min(...session.track.active.filter((e) => e.d > 0).map((e) => e.d), Infinity);
+}
+
+describe('mission metrics', () => {
+  const DT2 = 1 / 120;
+  function drive(obstacles: unknown[], act: (session: RunSession) => void): RunSession {
+    const pattern = parsePattern(
+      { id: 'metrics', length: 80, difficulty: 1, tags: [], obstacles, coins: [] },
+      'metrics',
+    );
+    const session = new RunSession(new SequentialSource([pattern]));
+    session.reset();
+    for (let t = 0; t < 7 && session.state === 'running'; t += DT2) {
+      act(session);
+      session.step(DT2);
+    }
+    return session;
+  }
+
+  it('counts barriers jumped over', () => {
+    const s = drive([{ type: 'lowBarrier', lane: 1, z: 30 }], (session) => {
+      if (session.motion.isGrounded && nearest(session) < 5) session.queue('up');
+    });
+    expect(s.state).toBe('running');
+    expect(s.metrics.barriersJumped).toBeGreaterThanOrEqual(1);
+    expect(s.metrics.jumps).toBeGreaterThanOrEqual(1);
+  });
+
+  it('counts obstacles ducked under', () => {
+    const s = drive([{ type: 'highSign', lane: 1, z: 30 }], (session) => {
+      if (!session.motion.isDucking && nearest(session) < 6) session.queue('down');
+    });
+    expect(s.state).toBe('running');
+    expect(s.metrics.ducksUnder).toBeGreaterThanOrEqual(1);
+  });
+
+  it('counts truck roofs and ramp launches', () => {
+    const s = drive(
+      [
+        { type: 'ramp', lane: 1, z: 20 },
+        { type: 'truck', lane: 1, z: 27 },
+        { type: 'ramp', lane: 1, z: 50 },
+      ],
+      () => undefined,
+    );
+    expect(s.state).toBe('running');
+    expect(s.metrics.roofs).toBeGreaterThanOrEqual(1);
+    expect(s.metrics.rampLaunches).toBeGreaterThanOrEqual(1);
   });
 });

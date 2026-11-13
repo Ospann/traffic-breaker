@@ -5,6 +5,8 @@ export interface CameraTarget {
   y: number;
   dash: number;
   menu: number;
+  garage?: number;
+  orbit?: number;
 }
 
 const BASE_ASPECT = 9 / 16;
@@ -19,6 +21,8 @@ export class CameraRig {
   private readonly look = new Vector3(0, 1, -10);
   private readonly tmp = new Vector3();
   private readonly tmpLook = new Vector3();
+  private readonly garagePos = new Vector3();
+  private readonly garageLook = new Vector3();
 
   setAspect(aspect: number): void {
     const halfV = baseHalfH / Math.min(aspect, BASE_ASPECT);
@@ -63,6 +67,13 @@ export class CameraRig {
       10.5 + dash * 3.6 - menu * 3.6,
     );
     look.set(target.x * 0.7 - menu * 0.4, 0.4 + target.y * 0.7 + menu * 0.2, -16 + menu * 14);
+    const garage = target.garage ?? 0;
+    if (garage <= 0) return;
+    const angle = target.orbit ?? 0;
+    this.garagePos.set(Math.sin(angle) * 5.6, 2.3, Math.cos(angle) * 5.6);
+    this.garageLook.set(0, -1.5, 0);
+    pos.lerp(this.garagePos, garage);
+    look.lerp(this.garageLook, garage);
   }
 
   private apply(): void {

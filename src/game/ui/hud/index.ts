@@ -52,6 +52,7 @@ export class Hud extends Screen {
   private lastMultiplier = -1;
   private lastReady: boolean | null = null;
   private lastShield = '';
+  private toast: HTMLDivElement | null = null;
 
   constructor(
     parent: HTMLElement,
@@ -89,6 +90,15 @@ export class Hud extends Screen {
       onShield();
     });
     this.drone.hidden = true;
+  }
+
+  showToast(title: string, text: string): void {
+    this.toast?.remove();
+    const toast = el('div', cx(styles, 'toast'), this.root);
+    el('div', cx(styles, 'toastTitle'), toast).textContent = title;
+    el('div', cx(styles, 'toastText'), toast).textContent = text;
+    toast.addEventListener('animationend', () => toast.remove());
+    this.toast = toast;
   }
 
   refreshTexts(): void {

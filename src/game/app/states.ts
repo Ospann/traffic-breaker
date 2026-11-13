@@ -1,3 +1,4 @@
+import { sanitizeSave } from '../save';
 import { services } from '../services';
 import { WorldView } from '../view/world-view';
 import type { App } from './app';
@@ -13,7 +14,12 @@ async function boot(app: App): Promise<void> {
   } catch (error) {
     console.error('[boot] platform.init failed', error);
   }
-  const data = await save.load();
+  const loaded = await save.load();
+  const clean = sanitizeSave(loaded);
+  if (JSON.stringify(clean) !== JSON.stringify(loaded)) {
+    save.update((draft) => Object.assign(draft, clean));
+  }
+  const data = save.data;
   i18n.setLanguage(data.language ?? platform.getLanguage());
   mute.set('settings', !data.soundEnabled);
   mute.set('platform', !platform.isAudioEnabled());
@@ -104,6 +110,12 @@ export function registerStates(app: App): void {
       exit: () => app.gameOver.hide(),
     })
     .register('garage', {
-      enter: () => app.machine.go('menu'),
+      enter: () => {
+        app.view?.setMode('garage', null);
+        app.renderGarage();
+        app.garage.show();
+        app.loop.start();
+      },
+      exit: () => app.garage.hide(),
     });
 }
