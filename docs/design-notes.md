@@ -97,3 +97,12 @@ Contested game-design and technical decisions. Each one can be revisited.
   - On load, `sanitizeSave` checks types and ranges: unknown skins are dropped, levels are clamped, a wrong language is reset.
 - **Garage** — a separate state. The camera slowly circles the car, and every purchase or choice applies to the car straight away.
 - **Debug:** the C key adds 1000 coins; G adds a shield (in a run it goes to the current session, outside a run it is saved).
+
+## User decisions (after stage 4)
+
+- **Thrusters run on compressed air instead of fire.** By the user's decision, the boost, jump, ramp and fast-drop thrusters let out white jets and vapour puffs (a separate particle system with normal blending). There is no fire. This replaces "огонь из сопел" and "цвет пламени" from the brief. The "Цвет струй" skin category only lightly tints the white jets (14%).
+- **Car silhouette.** The body is now a smooth lofted surface instead of an extruded profile:
+  - low nose with no grille, sculpted arches over the wheels, wider rear haunches;
+  - a closed targa-style canopy with a dark roof panel;
+  - slim headlights and a thin full-width taillight.
+    The user asked for the car to look like a Tesla Roadster. The brief (`docs/TASK.md`, section 1) bans copying the body of real brands, especially Tesla, and an unlicensed recognisable silhouette risks rejection or takedown on the portals. So this is a generic modern electric roadster, with no badges and no exact copy of a specific model's lines. An exact copy needs a change to the brief by the user.

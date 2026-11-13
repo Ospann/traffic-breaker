@@ -25,7 +25,8 @@ import { TrackView } from './track-view';
 export type ViewMode = 'menu' | 'run' | 'garage';
 
 const MENU_SPEED = 9;
-const PARTICLE_CAPACITY = 420;
+const PARTICLE_CAPACITY = 360;
+const VAPOR_CAPACITY = 420;
 
 function rand(min: number, max: number): number {
   return min + Math.random() * (max - min);
@@ -50,13 +51,13 @@ export class WorldView {
   readonly track: TrackView;
   readonly pickups: PickupView;
   readonly particles: ParticleSystem;
+  readonly vapor: ParticleSystem;
   private readonly fog: Fog;
   private readonly city: CityScenery;
   private readonly car = new Group();
   private carBody: Group;
-  private flameColor: number = palette.orange;
-  private flameHot: number = palette.amber;
-  private exhaustColor: number = palette.cyan;
+  private jetColor = 0xf4fbff;
+  private jetCore = 0xffffff;
   private readonly shadow: Mesh;
   private readonly drone: DroneModel;
   private readonly shieldBubble = buildShieldBubble();
@@ -96,8 +97,11 @@ export class WorldView {
     this.track = new TrackView(this.scene);
     this.pickups = new PickupView(this.scene);
     this.car.add(this.shieldBubble);
-    this.particles = new ParticleSystem(createGlowTexture(), PARTICLE_CAPACITY);
+    const glowTexture = createGlowTexture();
+    this.particles = new ParticleSystem(glowTexture, PARTICLE_CAPACITY);
     this.scene.add(this.particles.points);
+    this.vapor = new ParticleSystem(glowTexture, VAPOR_CAPACITY, false, 0.75);
+    this.scene.add(this.vapor.points);
 
     this.rig.snap({ x: 0, y: 0, dash: 0, menu: 1 });
   }
@@ -109,9 +113,8 @@ export class WorldView {
     });
     this.carBody = buildBreakerCar({ ...defaultCarSkin, neon: look.neon, kit: look.kit });
     this.car.add(this.carBody);
-    this.exhaustColor = look.neon;
-    this.flameColor = look.flame;
-    this.flameHot = new Color(look.flame).lerp(new Color(0xffffff), 0.45).getHex();
+    this.jetColor = new Color(0xffffff).lerp(new Color(look.flame), 0.14).getHex();
+    this.jetCore = 0xffffff;
   }
 
   setQuality(level: QualityLevel): void {
@@ -120,12 +123,15 @@ export class WorldView {
     this.rig.setFar(level.viewDistance);
     this.city.setViewDistance(level.viewDistance);
     this.particles.emissionScale = level.particles;
+    this.vapor.emissionScale = level.particles;
   }
 
   setViewport(width: number, height: number, pixelRatio: number): void {
     this.rig.setAspect(width / height);
     const fov = (this.rig.camera.fov * Math.PI) / 180;
-    this.particles.setViewportScale((height * pixelRatio) / (2 * Math.tan(fov / 2)));
+    const scale = (height * pixelRatio) / (2 * Math.tan(fov / 2));
+    this.particles.setViewportScale(scale);
+    this.vapor.setViewportScale(scale);
   }
 
   setMode(mode: ViewMode, session: RunSession | null): void {
@@ -140,6 +146,7 @@ export class WorldView {
   reset(): void {
     this.track.reset();
     this.particles.clear();
+    this.vapor.clear();
     this.crashSpin = 0;
     this.car.rotation.set(0, 0, 0);
   }
@@ -155,10 +162,10 @@ export class WorldView {
       switch (event.type) {
         case 'jump':
           if (session.bonusTimers.superJump > 0) {
-            this.burstUnder(x, y, 34, palette.lime);
+            this.burstUnder(x, y, 30, 1.5);
             this.rig.shake(0.15);
           } else {
-            this.burstUnder(x, y, 18, this.flameHot);
+            this.burstUnder(x, y, 18, 1);
           }
           break;
         case 'land':
@@ -167,14 +174,15 @@ export class WorldView {
           break;
         case 'rampLaunch':
           this.rig.shake(0.25);
-          this.burstUnder(x, y, 24, palette.cyan);
+          this.burstUnder(x, y, 22, 1.2);
           break;
         case 'fastDrop':
-          this.burstUnder(x, y, 10, palette.cyan);
+          this.burstUnder(x, y, 10, 0.8);
           break;
         case 'dashStart':
           this.rig.shake(0.7);
-          this.burstUnder(x, y, 40, this.flameColor);
+          this.burstUnder(x, y, 36, 1.8);
+          this.rearBlast(x, y, 30);
           break;
         case 'lightHit':
           this.rig.shake(0.55);
@@ -184,7 +192,7 @@ export class WorldView {
           this.rig.shake(1);
           this.crashSpin = 9;
           this.sparks(x, y + 0.6, 60, palette.amber);
-          this.burstUnder(x, y, 30, palette.red);
+          this.burstUnder(x, y, 30, 1.6);
           break;
         case 'deco':
           this.track.markTouched(event.entity);
@@ -267,14 +275,9 @@ export class WorldView {
     this.shadow.scale.set(shadowScale, 1, shadowScale);
 
     this.updateDrone(session, carX, carY);
-    this.emitExhaust(
-      dt,
-      carX,
-      this.car.position.y,
-      running ? (session?.speed ?? 0) : MENU_SPEED,
-      dashing,
-    );
+    this.emitJets(dt, carX, this.car.position.y, dashing);
     this.particles.update(dt);
+    this.vapor.update(dt);
     this.track.update(dt);
     this.pickups.update(dt, running ? session.track.pickups : null);
     this.updateShield(session, running);
@@ -307,46 +310,62 @@ export class WorldView {
     this.drone.beam.rotation.x = -0.25;
   }
 
-  private emitExhaust(dt: number, x: number, y: number, speed: number, dashing: boolean): void {
-    const rate = (dashing ? 160 : 28 + speed * 0.8) * this.particles.emissionScale;
-    this.emitCarry += rate * dt;
+  private emitJets(dt: number, x: number, y: number, dashing: boolean): void {
+    if (!dashing) {
+      this.emitCarry = 0;
+      return;
+    }
+    this.emitCarry += 150 * this.vapor.emissionScale * dt;
     while (this.emitCarry >= 1) {
       this.emitCarry -= 1;
       const socket = carSockets.rearNozzles[Math.random() < 0.5 ? 0 : 1];
-      this.particles.emit({
-        x: x + socket[0] + rand(-0.05, 0.05),
-        y: y + socket[1] * this.carBody.scale.y + rand(-0.05, 0.05),
+      this.vapor.emit({
+        x: x + socket[0],
+        y: y + socket[1] * this.carBody.scale.y,
         z: socket[2],
-        vx: rand(-0.4, 0.4),
-        vy: rand(-0.2, 0.4),
-        vz: dashing ? rand(16, 24) : rand(6, 10),
-        color: dashing
-          ? Math.random() < 0.5
-            ? this.flameColor
-            : this.flameHot
-          : this.exhaustColor,
-        size: dashing ? rand(0.7, 1.1) : rand(0.25, 0.4),
-        life: dashing ? rand(0.25, 0.4) : rand(0.12, 0.22),
-        drag: 2,
-        grow: dashing ? 1.6 : 0.8,
+        vx: rand(-0.5, 0.5),
+        vy: rand(-0.3, 0.5),
+        vz: rand(22, 30),
+        color: Math.random() < 0.4 ? this.jetCore : this.jetColor,
+        size: rand(0.18, 0.3),
+        life: rand(0.28, 0.42),
+        drag: 6,
+        grow: 5,
       });
-      if (dashing) {
-        const under = carSockets.underNozzles[Math.random() < 0.5 ? 0 : 1];
-        this.particles.emit({
-          x: x + under[0],
-          y: y + under[1],
-          z: under[2],
-          vx: rand(-0.6, 0.6),
-          vy: rand(-9, -5),
-          vz: rand(4, 8),
-          color: this.flameColor,
-          size: rand(0.5, 0.8),
-          life: rand(0.2, 0.32),
-          drag: 3,
-          grow: 1.2,
-        });
-      }
+      const under = carSockets.underNozzles[Math.random() < 0.5 ? 0 : 1];
+      this.vapor.emit({
+        x: x + under[0],
+        y: y + under[1],
+        z: under[2],
+        vx: rand(-0.8, 0.8),
+        vy: rand(-16, -10),
+        vz: rand(3, 6),
+        color: this.jetColor,
+        size: rand(0.2, 0.3),
+        life: rand(0.22, 0.34),
+        drag: 6,
+        grow: 4.5,
+      });
     }
+  }
+
+  private rearBlast(x: number, y: number, count: number): void {
+    this.vapor.burst(count, () => {
+      const socket = carSockets.rearNozzles[Math.random() < 0.5 ? 0 : 1];
+      return {
+        x: x + socket[0] + rand(-0.1, 0.1),
+        y: y + socket[1] + rand(-0.1, 0.1),
+        z: socket[2],
+        vx: rand(-3, 3),
+        vy: rand(-1, 2),
+        vz: rand(14, 26),
+        color: this.jetCore,
+        size: rand(0.4, 0.7),
+        life: rand(0.4, 0.6),
+        drag: 4,
+        grow: 4,
+      };
+    });
   }
 
   private updateShield(session: RunSession | null, running: boolean): void {
@@ -375,21 +394,21 @@ export class WorldView {
     }));
   }
 
-  private burstUnder(x: number, y: number, count: number, color: number): void {
-    this.particles.burst(count, () => {
+  private burstUnder(x: number, y: number, count: number, power: number): void {
+    this.vapor.burst(count, () => {
       const socket = carSockets.underNozzles[Math.random() < 0.5 ? 0 : 1];
       return {
-        x: x + socket[0] + rand(-0.2, 0.2),
-        y: y + 0.1,
-        z: socket[2] + rand(-0.6, 0.6),
-        vx: rand(-2, 2),
-        vy: rand(-6, -2),
-        vz: rand(4, 10),
-        color,
-        size: rand(0.5, 0.9),
-        life: rand(0.25, 0.45),
-        drag: 3,
-        grow: 1.4,
+        x: x + socket[0] + rand(-0.15, 0.15),
+        y: y + 0.12,
+        z: socket[2] + rand(-0.4, 0.4),
+        vx: rand(-3, 3) * power,
+        vy: rand(-9, -4) * power,
+        vz: rand(3, 9),
+        color: Math.random() < 0.5 ? this.jetCore : this.jetColor,
+        size: rand(0.35, 0.6),
+        life: rand(0.35, 0.55),
+        drag: 4,
+        grow: 3.5,
       };
     });
   }

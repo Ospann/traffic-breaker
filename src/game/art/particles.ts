@@ -1,6 +1,7 @@
 import {
   AdditiveBlending,
   BufferAttribute,
+  NormalBlending,
   BufferGeometry,
   Color,
   DynamicDrawUsage,
@@ -12,10 +13,13 @@ import {
 const vertexShader = `
 attribute float size;
 attribute vec3 tint;
+attribute float alpha;
 varying vec3 vTint;
+varying float vAlpha;
 uniform float uScale;
 void main() {
   vTint = tint;
+  vAlpha = alpha;
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   gl_PointSize = size * uScale / max(-mv.z, 0.1);
   gl_Position = projectionMatrix * mv;
@@ -25,9 +29,12 @@ void main() {
 const fragmentShader = `
 uniform sampler2D uMap;
 varying vec3 vTint;
+varying float vAlpha;
+uniform float uAdditive;
 void main() {
   vec4 tex = texture2D(uMap, gl_PointCoord);
-  gl_FragColor = vec4(vTint * tex.a, tex.a);
+  float a = tex.a * vAlpha;
+  gl_FragColor = uAdditive > 0.5 ? vec4(vTint * a, a) : vec4(vTint, a);
 }
 `;
 
@@ -53,6 +60,7 @@ export class ParticleSystem {
   private readonly material: ShaderMaterial;
   private readonly positions: Float32Array;
   private readonly tints: Float32Array;
+  private readonly alphas: Float32Array;
   private readonly sizes: Float32Array;
   private readonly velocity: Float32Array;
   private readonly baseColor: Float32Array;
@@ -68,7 +76,10 @@ export class ParticleSystem {
   constructor(
     texture: Texture,
     private readonly capacity: number,
+    private readonly additive = true,
+    private readonly opacity = 1,
   ) {
+    this.alphas = new Float32Array(capacity);
     this.positions = new Float32Array(capacity * 3);
     this.tints = new Float32Array(capacity * 3);
     this.sizes = new Float32Array(capacity);
@@ -88,14 +99,19 @@ export class ParticleSystem {
     );
     geometry.setAttribute('tint', new BufferAttribute(this.tints, 3).setUsage(DynamicDrawUsage));
     geometry.setAttribute('size', new BufferAttribute(this.sizes, 1).setUsage(DynamicDrawUsage));
+    geometry.setAttribute('alpha', new BufferAttribute(this.alphas, 1).setUsage(DynamicDrawUsage));
 
     this.material = new ShaderMaterial({
-      uniforms: { uMap: { value: texture }, uScale: { value: 400 } },
+      uniforms: {
+        uMap: { value: texture },
+        uScale: { value: 400 },
+        uAdditive: { value: additive ? 1 : 0 },
+      },
       vertexShader,
       fragmentShader,
       transparent: true,
       depthWrite: false,
-      blending: AdditiveBlending,
+      blending: additive ? AdditiveBlending : NormalBlending,
     });
     this.points = new Points(geometry, this.material);
     this.points.frustumCulled = false;
@@ -153,13 +169,16 @@ export class ParticleSystem {
       this.positions[i3 + 1] = (this.positions[i3 + 1] ?? 0) + vy * dt;
       this.positions[i3 + 2] = (this.positions[i3 + 2] ?? 0) + vz * dt;
       const k = life / (this.maxLife[i] ?? 1);
-      this.tints[i3] = (this.baseColor[i3] ?? 0) * k;
-      this.tints[i3 + 1] = (this.baseColor[i3 + 1] ?? 0) * k;
-      this.tints[i3 + 2] = (this.baseColor[i3 + 2] ?? 0) * k;
+      const fade = this.additive ? k : k * k * this.opacity;
+      this.alphas[i] = this.additive ? 1 : fade;
+      const shade = this.additive ? k : 1;
+      this.tints[i3] = (this.baseColor[i3] ?? 0) * shade;
+      this.tints[i3 + 1] = (this.baseColor[i3 + 1] ?? 0) * shade;
+      this.tints[i3 + 2] = (this.baseColor[i3 + 2] ?? 0) * shade;
       this.sizes[i] = (this.baseSize[i] ?? 0) * (1 + (this.grow[i] ?? 0) * (1 - k));
     }
     const geometry = this.points.geometry;
-    for (const name of ['position', 'tint', 'size']) {
+    for (const name of ['position', 'tint', 'size', 'alpha']) {
       const attribute = geometry.getAttribute(name);
       attribute.needsUpdate = true;
     }
