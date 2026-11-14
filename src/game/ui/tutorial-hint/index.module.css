@@ -1,0 +1,159 @@
+.root {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 38%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 20);
+  pointer-events: none;
+  animation: appear 0.25s ease-out;
+}
+
+.gesture {
+  position: relative;
+  width: calc(var(--u) * 220);
+  height: calc(var(--u) * 220);
+}
+
+.finger {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--u) * 70);
+  height: calc(var(--u) * 70);
+  margin: calc(var(--u) * -35) 0 0 calc(var(--u) * -35);
+  border-radius: 50%;
+  background: rgb(242 244 255 / 0.9);
+  box-shadow: 0 0 calc(var(--u) * 30) #22e6ff;
+}
+
+.left .finger {
+  animation: swipeX 1s ease-in-out infinite alternate;
+}
+
+.up .finger {
+  animation: swipeUp 0.9s ease-in infinite;
+}
+
+.down .finger {
+  animation: swipeDown 0.9s ease-in infinite;
+}
+
+.tap .finger {
+  animation: tap 0.7s ease-out infinite;
+}
+
+.arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--u) * 46);
+  height: calc(var(--u) * 46);
+  margin: calc(var(--u) * -23) 0 0 calc(var(--u) * -23);
+  border-top: calc(var(--u) * 8) solid #22e6ff;
+  border-right: calc(var(--u) * 8) solid #22e6ff;
+  filter: drop-shadow(0 0 calc(var(--u) * 8) #22e6ff);
+  opacity: 0.85;
+}
+
+.text {
+  padding: calc(var(--u) * 14) calc(var(--u) * 26);
+  border-radius: calc(var(--u) * 16);
+  background: rgb(9 4 20 / 0.75);
+  border: calc(var(--u) * 2) solid #22e6ff;
+  font-size: calc(var(--u) * 34);
+  font-weight: 900;
+  text-align: center;
+  color: #f2f4ff;
+  text-shadow: 0 0 calc(var(--u) * 12) #22e6ff;
+}
+
+.praise {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40%;
+  text-align: center;
+  font-size: calc(var(--u) * 64);
+  font-weight: 900;
+  font-style: italic;
+  color: #8dff3a;
+  text-shadow: 0 0 calc(var(--u) * 20) #8dff3a;
+  pointer-events: none;
+  animation: praise 0.9s ease-out forwards;
+}
+
+@keyframes swipeX {
+  from {
+    transform: translateX(calc(var(--u) * -80));
+  }
+  to {
+    transform: translateX(calc(var(--u) * 80));
+  }
+}
+
+@keyframes swipeUp {
+  from {
+    transform: translateY(calc(var(--u) * 70));
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(calc(var(--u) * -80));
+    opacity: 0;
+  }
+}
+
+@keyframes swipeDown {
+  from {
+    transform: translateY(calc(var(--u) * -70));
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(calc(var(--u) * 80));
+    opacity: 0;
+  }
+}
+
+@keyframes tap {
+  0%,
+  40% {
+    transform: scale(1);
+  }
+  20%,
+  60% {
+    transform: scale(0.75);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes praise {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(var(--u) * -60));
+  }
+}

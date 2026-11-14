@@ -132,3 +132,20 @@ Contested game-design and technical decisions. Each one can be revisited.
   - Drone siren: square wave, two tones 700/960 Hz, while the drone is near.
   - Audio unlocks on the first tap/click/key, including iOS (`touchend`). MuteController suspends the context during ads, pause and when muted.
 - **Localization.** All new strings are in en/ru/tr. A test checks that every mission, skin, upgrade and bonus has a key, and that the placeholders in ru/tr match en. `<html lang>` follows the active language.
+
+## Stage 6
+
+- **First-run tutorial.**
+  - If `tutorialDone` isn't set, the run opens with the special pattern `tutorial-basics`: a truck in the middle lane, then a row of low barriers, a row of signs, then open road with air coins.
+  - The generator never picks this pattern; the validator checks it like all the others.
+  - A hint appears when the obstacle in your lane comes close: an animated gesture plus text. On touch devices it describes swipes, on desktop the keys.
+  - While a hint is shown, the game runs at ×0.3 speed. The right action closes the hint ("Отлично!"); a wrong one doesn't.
+  - After the duck, the boost meter fills by itself and the "double tap" hint appears.
+  - The flag is saved only after all 4 steps, so if the player crashes mid-tutorial, it repeats next run.
+  - Missed steps (e.g. changed lane before the hint) are skipped without a hint.
+- **Polish:**
+  - field of view widens by 9° during boost;
+  - the coin counter "pops" on every coin, the score pops on every 1000;
+  - bonus chips slide in; menu and pause fade in.
+- **Garage on touch screens.** The item list scrolls natively. The global `touchmove` blocker from `@core/input` doesn't reach the list (stopPropagation on the list itself); core is unchanged.
+- **Version** bumped to 0.9.0 for the moderation check. 1.0.0 is the user's release decision.

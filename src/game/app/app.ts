@@ -32,7 +32,10 @@ import { LoadingScreen } from '../ui/loading-screen';
 import { MenuScreen } from '../ui/menu-screen';
 import { PauseScreen } from '../ui/pause-screen';
 import type { WorldView } from '../view/world-view';
-import { PatternGenerator } from '../world/pattern-generator';
+import { TutorialDirector } from '../tutorial/tutorial-director';
+import { TutorialHint } from '../ui/tutorial-hint';
+import { PatternGenerator, TUTORIAL_TAG } from '../world/pattern-generator';
+import { PrefixedSource } from '../world/prefixed-source';
 import { randomSeed } from '../world/random';
 import { SequentialSource } from '../world/sequential-source';
 import type { PatternSource } from '../world/track';
@@ -61,7 +64,10 @@ export class App {
   readonly machine = new StateMachine();
   readonly loop: Loop;
   readonly quality: QualityGovernor;
-  readonly session = new RunSession(createPatternSource());
+  readonly source = new PrefixedSource(createPatternSource());
+  readonly session = new RunSession(this.source);
+  readonly tutorialHint: TutorialHint;
+  private tutorial: TutorialDirector | null = null;
   readonly debug: DebugOverlay | null;
 
   readonly loading: LoadingScreen;
@@ -132,6 +138,8 @@ export class App {
       menu: () => this.backToMenu(),
       doubleCoins: () => this.doubleCoins(),
     });
+    const touch = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    this.tutorialHint = new TutorialHint(ui, i18n, touch);
     this.continueScreen = new ContinueScreen(ui, i18n, {
       watch: () => this.watchToContinue(),
       skip: () => this.declineContinue(),
@@ -220,6 +228,7 @@ export class App {
     const data = services().save.data;
     const boosted = this.boostNextRun;
     this.boostNextRun = false;
+    this.setupTutorial(!data.tutorialDone && !isPatternForced());
     this.session.reset({
       ...defaultRunConfig,
       seed: randomSeed(),
@@ -254,15 +263,41 @@ export class App {
     });
   }
 
+  private setupTutorial(enabled: boolean): void {
+    this.tutorialHint.hide();
+    const lesson = patterns.find((p) => p.tags.includes(TUTORIAL_TAG));
+    if (!enabled || !lesson) {
+      this.source.setPrefix([]);
+      this.tutorial = null;
+      return;
+    }
+    this.source.setPrefix([lesson]);
+    const { i18n, save } = services();
+    this.tutorial = new TutorialDirector(this.session, {
+      show: (step) => this.tutorialHint.show(step),
+      hide: (success) => {
+        this.tutorialHint.hide();
+        if (!success) return;
+        this.sfx.play('mission');
+        this.tutorialHint.praise(i18n.t('tutorial.good'));
+      },
+      finish: () => {
+        save.set('tutorialDone', true);
+        window.setTimeout(() => this.tutorialHint.praise(i18n.t('tutorial.done')), 900);
+      },
+    });
+  }
+
   private input(action: Action): void {
     if (this.machine.current !== 'run') return;
+    this.tutorial?.onAction(action);
     this.session.queue(action);
   }
 
   private step(dt: number): void {
     const state = this.machine.current;
     if (state !== 'run' && state !== 'game-over') return;
-    this.session.step(dt);
+    this.session.step(dt * (state === 'run' ? (this.tutorial?.timeScale ?? 1) : 1));
     if (state !== 'run') return;
     if (this.session.state !== 'running' && !this.crashHandled) {
       this.crashHandled = true;
@@ -307,6 +342,9 @@ export class App {
         shieldLeft: session.shieldTimer,
       });
       this.checkMissions(dt);
+      this.tutorial?.update(dt);
+    } else {
+      this.tutorialHint.hide();
     }
     this.quality.sample(dt, state === 'run');
     this.debug?.update(dt, this.stage.renderer, {
@@ -511,6 +549,11 @@ export class App {
 
 function skinColor(id: string, fallback: number): number {
   return findSkin(id)?.color ?? fallback;
+}
+
+function isPatternForced(): boolean {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('debug') === '1' && params.get('pattern') !== null;
 }
 
 function createPatternSource(): PatternSource {

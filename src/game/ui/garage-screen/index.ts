@@ -69,6 +69,7 @@ export class GarageScreen extends Screen {
       this.tabButtons.set(tab, button);
     }
     this.list = el('div', cx(styles, 'list'), panel);
+    this.list.addEventListener('touchmove', (event) => event.stopPropagation(), { passive: true });
     const footer = el('div', cx(styles, 'footer'), panel);
     this.back = createButton(footer, 'secondary', () => actions.back());
   }

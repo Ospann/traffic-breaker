@@ -12,6 +12,7 @@ export class LoadingScreen extends Screen {
   ) {
     super(parent, cx(styles, 'root'));
     const title = el('div', cx(styles, 'title'), this.root);
+    title.lang = 'en';
     title.textContent = i18n.t('menu.title');
     const bar = el('div', cx(styles, 'bar'), this.root);
     this.fill = el('div', cx(styles, 'fill'), bar);

@@ -29,6 +29,13 @@ const bonusLabel: Readonly<Record<BonusType, `bonus.${BonusType}`>> = {
   superJump: 'bonus.superJump',
 };
 
+function bump(node: HTMLElement, scale: number): void {
+  node.animate?.(
+    [{ transform: 'scale(1)' }, { transform: `scale(${scale})` }, { transform: 'scale(1)' }],
+    { duration: 220, easing: 'ease-out' },
+  );
+}
+
 interface BonusChip {
   root: HTMLDivElement;
   label: HTMLDivElement;
@@ -101,6 +108,12 @@ export class Hud extends Screen {
     this.toast = toast;
   }
 
+  override show(): void {
+    this.lastScore = -1;
+    this.lastCoins = -1;
+    super.show();
+  }
+
   refreshTexts(): void {
     this.lastReady = null;
     this.lastShield = '';
@@ -111,10 +124,14 @@ export class Hud extends Screen {
 
   render(data: HudData): void {
     if (data.score !== this.lastScore) {
+      if (Math.floor(data.score / 1000) > Math.floor(Math.max(this.lastScore, 0) / 1000)) {
+        bump(this.score, 1.35);
+      }
       this.lastScore = data.score;
       setText(this.score, this.i18n.t('hud.score', { score: data.score }));
     }
     if (data.coins !== this.lastCoins) {
+      if (data.coins > this.lastCoins && this.lastCoins >= 0) bump(this.coins, 1.25);
       this.lastCoins = data.coins;
       setText(this.coins, String(data.coins));
     }

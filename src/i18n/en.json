@@ -106,5 +106,15 @@
   "ad.unavailable": "Ad is not available right now",
   "gameover.doubleCoins": "x2 coins ▶ ad",
   "gameover.coinsDoubled": "Coins doubled!",
-  "menu.boostStart": "▶ Start with shield + full boost"
+  "menu.boostStart": "▶ Start with shield + full boost",
+  "tutorial.lane.touch": "Swipe left or right to dodge",
+  "tutorial.lane.keys": "Press ← or → to dodge",
+  "tutorial.jump.touch": "Swipe up to jump",
+  "tutorial.jump.keys": "Press ↑ or W to jump",
+  "tutorial.duck.touch": "Swipe down to duck",
+  "tutorial.duck.keys": "Press ↓ or S to duck",
+  "tutorial.dash.touch": "Boost ready! Double tap to fly",
+  "tutorial.dash.keys": "Boost ready! Press Space to fly",
+  "tutorial.good": "Nice!",
+  "tutorial.done": "You're ready. Go!"
 }

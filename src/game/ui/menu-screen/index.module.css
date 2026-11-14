@@ -1,6 +1,7 @@
 .root {
   position: absolute;
   inset: 0;
+  animation: menuIn 0.3s ease-out;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -109,4 +110,10 @@
   color: #ffd36a;
   font-size: calc(var(--u) * 24);
   box-shadow: 0 0 calc(var(--u) * 16) rgb(255 198 58 / 0.4);
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+  }
 }

@@ -106,5 +106,15 @@
   "ad.unavailable": "Reklam şu anda kullanılamıyor",
   "gameover.doubleCoins": "x2 jeton ▶ reklam",
   "gameover.coinsDoubled": "Jetonlar ikiye katlandı!",
-  "menu.boostStart": "▶ Kalkan + dolu itkiyle başla"
+  "menu.boostStart": "▶ Kalkan + dolu itkiyle başla",
+  "tutorial.lane.touch": "Kaçmak için sola veya sağa kaydır",
+  "tutorial.lane.keys": "Kaçmak için ← veya → bas",
+  "tutorial.jump.touch": "Zıplamak için yukarı kaydır",
+  "tutorial.jump.keys": "Zıplamak için ↑ veya W bas",
+  "tutorial.duck.touch": "Eğilmek için aşağı kaydır",
+  "tutorial.duck.keys": "Eğilmek için ↓ veya S bas",
+  "tutorial.dash.touch": "Atılım hazır! Uçmak için çift dokun",
+  "tutorial.dash.keys": "Atılım hazır! Uçmak için Boşluk'a bas",
+  "tutorial.good": "Harika!",
+  "tutorial.done": "Hazırsın. Bas gaza!"
 }

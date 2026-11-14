@@ -106,5 +106,15 @@
   "ad.unavailable": "Реклама сейчас недоступна",
   "gameover.doubleCoins": "x2 монеты ▶ реклама",
   "gameover.coinsDoubled": "Монеты удвоены!",
-  "menu.boostStart": "▶ Старт со щитом и полной тягой"
+  "menu.boostStart": "▶ Старт со щитом и полной тягой",
+  "tutorial.lane.touch": "Свайп влево или вправо — объехать",
+  "tutorial.lane.keys": "Нажми ← или →, чтобы объехать",
+  "tutorial.jump.touch": "Свайп вверх — прыжок",
+  "tutorial.jump.keys": "Нажми ↑ или W — прыжок",
+  "tutorial.duck.touch": "Свайп вниз — прижаться",
+  "tutorial.duck.keys": "Нажми ↓ или S — прижаться",
+  "tutorial.dash.touch": "Рывок готов! Двойной тап — полёт",
+  "tutorial.dash.keys": "Рывок готов! Пробел — полёт",
+  "tutorial.good": "Отлично!",
+  "tutorial.done": "Ты готов. Вперёд!"
 }

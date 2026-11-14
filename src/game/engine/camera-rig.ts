@@ -24,9 +24,13 @@ export class CameraRig {
   private readonly garagePos = new Vector3();
   private readonly garageLook = new Vector3();
 
+  private baseFov = BASE_VFOV;
+  private fovKick = 0;
+
   setAspect(aspect: number): void {
     const halfV = baseHalfH / Math.min(aspect, BASE_ASPECT);
-    this.camera.fov = (2 * Math.atan(halfV) * 180) / Math.PI;
+    this.baseFov = (2 * Math.atan(halfV) * 180) / Math.PI;
+    this.camera.fov = this.baseFov + this.fovKick;
     this.camera.aspect = aspect;
     this.camera.updateProjectionMatrix();
   }
@@ -55,6 +59,12 @@ export class CameraRig {
     const k = 1 - Math.exp(-dt * 7);
     this.pos.lerp(desiredPos, k);
     this.look.lerp(desiredLook, 1 - Math.exp(-dt * 9));
+    const kick = target.dash * 9 * (1 - (target.garage ?? 0));
+    if (Math.abs(kick - this.fovKick) > 0.05) {
+      this.fovKick = kick;
+      this.camera.fov = this.baseFov + kick;
+      this.camera.updateProjectionMatrix();
+    }
     this.apply();
   }
 

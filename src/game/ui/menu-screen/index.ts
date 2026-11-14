@@ -44,6 +44,7 @@ export class MenuScreen extends Screen {
     el('div', cx(styles, 'coin'), wallet);
     this.coins = el('div', '', wallet);
     this.title = el('div', cx(styles, 'title'), this.root);
+    this.title.lang = 'en';
     this.subtitle = el('div', cx(styles, 'subtitle'), this.root);
     this.best = el('div', cx(styles, 'best'), this.root);
     el('div', cx(styles, 'spacer'), this.root);

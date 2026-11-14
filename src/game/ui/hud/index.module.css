@@ -97,6 +97,7 @@
 }
 
 .coins {
+  transform-origin: left center;
   position: absolute;
   top: calc(var(--u) * 44);
   left: calc(var(--u) * 30);
@@ -140,6 +141,7 @@
 }
 
 .bonus {
+  animation: chipIn 0.25s ease-out;
   width: calc(var(--u) * 220);
   padding: calc(var(--u) * 6) calc(var(--u) * 12);
   border: calc(var(--u) * 2) solid var(--accent);
@@ -231,5 +233,12 @@
   100% {
     opacity: 0;
     transform: translateY(calc(var(--u) * -20));
+  }
+}
+
+@keyframes chipIn {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--u) * -40));
   }
 }

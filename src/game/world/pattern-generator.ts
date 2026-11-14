@@ -4,6 +4,7 @@ import { mulberry32, randomSeed, type Random } from './random';
 import type { PatternSource } from './track';
 
 export const BREATHER_TAG = 'breather';
+export const TUTORIAL_TAG = 'tutorial';
 
 const DIFFICULTIES: readonly Difficulty[] = [1, 2, 3];
 
@@ -18,13 +19,14 @@ export class PatternGenerator implements PatternSource {
     patterns: readonly Pattern[],
     private readonly seed: () => number = randomSeed,
   ) {
-    const regular = patterns.filter((p) => !p.tags.includes(BREATHER_TAG));
+    const playable = patterns.filter((p) => !p.tags.includes(TUTORIAL_TAG));
+    const regular = playable.filter((p) => !p.tags.includes(BREATHER_TAG));
     this.byDifficulty = {
       1: regular.filter((p) => p.difficulty === 1),
       2: regular.filter((p) => p.difficulty === 2),
       3: regular.filter((p) => p.difficulty === 3),
     };
-    this.breathers = patterns.filter((p) => p.tags.includes(BREATHER_TAG));
+    this.breathers = playable.filter((p) => p.tags.includes(BREATHER_TAG));
     if (this.byDifficulty[1].length === 0)
       throw new Error('PatternGenerator needs difficulty 1 patterns');
     this.random = mulberry32(this.seed());
