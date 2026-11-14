@@ -44,8 +44,6 @@ async function preload(app: App): Promise<void> {
 }
 
 export function registerStates(app: App): void {
-  let resumeRun = false;
-
   app.machine
     .register('boot', {
       enter: () => {
@@ -59,7 +57,7 @@ export function registerStates(app: App): void {
     })
     .register('menu', {
       enter: (from) => {
-        if (from === 'pause') services().platform.levelFail({ level: 'run' });
+        if (from === 'pause' || from === 'game-over') app.finalizeRun();
         app.view?.reset();
         app.view?.setMode('menu', null);
         app.renderMenu();
@@ -69,13 +67,14 @@ export function registerStates(app: App): void {
       exit: () => app.menu.hide(),
     })
     .register('run', {
-      enter: () => {
+      enter: (from) => {
         const { gameplay, platform } = services();
-        if (!resumeRun) {
+        const resume = from === 'pause' || app.resumeRun;
+        app.resumeRun = false;
+        if (!resume) {
           app.beginRun();
           platform.levelStart({ level: 'run' });
         }
-        resumeRun = false;
         app.hud.refreshTexts();
         app.hud.show();
         gameplay.start();
@@ -97,17 +96,18 @@ export function registerStates(app: App): void {
       exit: (to) => {
         services().mute.set('pause', false);
         app.pauseScreen.hide();
-        if (to === 'run') resumeRun = true;
-        else app.hud.hide();
+        if (to !== 'run') app.hud.hide();
       },
     })
     .register('game-over', {
       enter: () => {
-        const { save } = services();
-        app.gameOver.render({ ...app.lastResult, best: save.data.bestScore });
-        app.gameOver.show();
+        if (app.canOfferContinue) app.offerContinue();
+        else app.showResults();
       },
-      exit: () => app.gameOver.hide(),
+      exit: () => {
+        app.continueScreen.hide();
+        app.gameOver.hide();
+      },
     })
     .register('garage', {
       enter: () => {

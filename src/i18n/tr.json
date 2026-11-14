@@ -98,5 +98,13 @@
   "skin.flame.blue": "Mavi",
   "skin.flame.green": "Yeşil",
   "skin.flame.pink": "Pembe",
-  "skin.flame.white": "Beyaz"
+  "skin.flame.white": "Beyaz",
+  "continue.title": "Devam mı?",
+  "continue.watch": "Devam ▶ reklam",
+  "continue.skip": "Hayır, teşekkürler",
+  "continue.left": "Kalan devam hakkı: {count}",
+  "ad.unavailable": "Reklam şu anda kullanılamıyor",
+  "gameover.doubleCoins": "x2 jeton ▶ reklam",
+  "gameover.coinsDoubled": "Jetonlar ikiye katlandı!",
+  "menu.boostStart": "▶ Kalkan + dolu itkiyle başla"
 }

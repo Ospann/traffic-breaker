@@ -12,15 +12,14 @@ export class AudioEngine {
   }
 
   installUnlock(target: EventTarget = window): void {
+    const events = ['pointerdown', 'touchend', 'click', 'keydown'];
     const unlock = (): void => {
       this.unlock();
       if (this.context?.state === 'running') {
-        target.removeEventListener('pointerdown', unlock);
-        target.removeEventListener('keydown', unlock);
+        for (const name of events) target.removeEventListener(name, unlock);
       }
     };
-    target.addEventListener('pointerdown', unlock);
-    target.addEventListener('keydown', unlock);
+    for (const name of events) target.addEventListener(name, unlock);
   }
 
   unlock(): void {

@@ -1,0 +1,54 @@
+.root {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 26);
+  background: radial-gradient(circle at 50% 45%, rgb(34 230 255 / 0.18), rgb(9 4 20 / 0.86) 65%);
+  animation: appear 0.3s ease-out;
+}
+
+.title {
+  font-size: calc(var(--u) * 80);
+  font-weight: 900;
+  font-style: italic;
+  text-align: center;
+  text-transform: uppercase;
+  color: #f2f4ff;
+  text-shadow: 0 0 calc(var(--u) * 20) #22e6ff;
+}
+
+.timer {
+  width: calc(var(--u) * 420);
+  height: calc(var(--u) * 14);
+  border-radius: calc(var(--u) * 7);
+  background: rgb(255 255 255 / 0.12);
+  overflow: hidden;
+}
+
+.timerFill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #22e6ff, #8a4dff);
+}
+
+.left {
+  font-size: calc(var(--u) * 26);
+  color: #b9b4d8;
+}
+
+.status {
+  min-height: calc(var(--u) * 34);
+  font-size: calc(var(--u) * 26);
+  color: #ffb020;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+}

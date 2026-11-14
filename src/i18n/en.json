@@ -98,5 +98,13 @@
   "skin.flame.blue": "Blue",
   "skin.flame.green": "Green",
   "skin.flame.pink": "Pink",
-  "skin.flame.white": "White"
+  "skin.flame.white": "White",
+  "continue.title": "Keep driving?",
+  "continue.watch": "Continue ▶ ad",
+  "continue.skip": "No thanks",
+  "continue.left": "Continues left: {count}",
+  "ad.unavailable": "Ad is not available right now",
+  "gameover.doubleCoins": "x2 coins ▶ ad",
+  "gameover.coinsDoubled": "Coins doubled!",
+  "menu.boostStart": "▶ Start with shield + full boost"
 }

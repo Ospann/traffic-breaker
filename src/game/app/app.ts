@@ -7,7 +7,9 @@ import { listenTouch } from '../input/touch-input';
 import { patterns } from '../patterns';
 import { services } from '../services';
 import type { CarKit } from '../art/breaker-car';
-import { bonusTypes, type BonusType } from '../balance';
+import { playSessionSounds } from '../audio/session-sounds';
+import { Sfx } from '../audio/sfx';
+import { bonusTypes, revive, type BonusType } from '../balance';
 import { findSkin } from '../progression/catalog';
 import {
   applyRunResult,
@@ -22,6 +24,7 @@ import { liveCompleted, missionSet } from '../progression/missions';
 import type { GameSave } from '../save';
 import { defaultRunConfig, RunSession } from '../sim/run-session';
 import { DebugOverlay } from '../ui/debug-overlay';
+import { ContinueScreen } from '../ui/continue-screen';
 import { GameOverScreen } from '../ui/game-over-screen';
 import { GarageScreen } from '../ui/garage-screen';
 import { Hud } from '../ui/hud';
@@ -43,6 +46,7 @@ export interface RunResult {
   coins: number;
   missionsDone: number;
   multiplierUp: number | null;
+  doubled: boolean;
 }
 
 const DEBUG_BONUS_KEYS: Readonly<Record<string, BonusType>> = {
@@ -75,7 +79,14 @@ export class App {
     coins: 0,
     missionsDone: 0,
     multiplierUp: null,
+    doubled: false,
   };
+  readonly continueScreen: ContinueScreen;
+  readonly sfx: Sfx;
+  resumeRun = false;
+  continueTimer = 0;
+  private boostNextRun = false;
+  private adBusy = false;
   private liveDone: boolean[] = [];
   private missionCheckTimer = 0;
   private readonly bonusRatios: Record<BonusType, number> = {
@@ -85,17 +96,23 @@ export class App {
     superJump: 0,
   };
   private crashHandled = false;
+  private runFinalized = true;
 
   constructor(root: HTMLElement) {
-    const { i18n } = services();
+    const { i18n, audio } = services();
+    this.sfx = new Sfx(audio);
     this.stage = new Stage(root);
     const ui = this.stage.ui;
+    ui.addEventListener('click', (event) => {
+      if (event.target instanceof Element && event.target.closest('button')) this.sfx.play('click');
+    });
     const debugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
     this.debug = debugEnabled ? new DebugOverlay(ui) : null;
 
     this.loading = new LoadingScreen(ui, i18n);
     this.menu = new MenuScreen(ui, i18n, {
       play: () => this.machine.go('run'),
+      boostedStart: () => this.boostedStart(),
       garage: () => this.machine.go('garage'),
       toggleSound: () => this.toggleSound(),
       nextLanguage: () => this.nextLanguage(),
@@ -112,7 +129,12 @@ export class App {
     });
     this.gameOver = new GameOverScreen(ui, i18n, {
       again: () => this.machine.go('run'),
-      menu: () => this.machine.go('menu'),
+      menu: () => this.backToMenu(),
+      doubleCoins: () => this.doubleCoins(),
+    });
+    this.continueScreen = new ContinueScreen(ui, i18n, {
+      watch: () => this.watchToContinue(),
+      skip: () => this.declineContinue(),
     });
 
     this.garage = new GarageScreen(ui, i18n, {
@@ -194,10 +216,15 @@ export class App {
 
   beginRun(): void {
     this.crashHandled = false;
+    this.runFinalized = false;
     const data = services().save.data;
+    const boosted = this.boostNextRun;
+    this.boostNextRun = false;
     this.session.reset({
       ...defaultRunConfig,
       seed: randomSeed(),
+      startShield: boosted,
+      startWithFullThrust: boosted,
       shields: data.shields,
       scoreMultiplier: data.multiplier,
       thrustLevel: data.upgrades.thrust,
@@ -239,7 +266,7 @@ export class App {
     if (state !== 'run') return;
     if (this.session.state !== 'running' && !this.crashHandled) {
       this.crashHandled = true;
-      this.finishRun();
+      services().gameplay.stop();
     }
     if (this.session.state === 'over') this.machine.go('game-over');
   }
@@ -251,8 +278,16 @@ export class App {
     const inRun = state === 'run' || state === 'game-over';
     if (inRun) {
       view.handleEvents(this.session.events, this.session);
+      playSessionSounds(this.sfx, this.session.events, this.session);
     }
     this.session.events.length = 0;
+    this.sfx.update(dt, {
+      speed: this.session.speed,
+      running: state === 'run' && this.session.state === 'running',
+      dashing: this.session.motion.isDashing,
+      droneNear: this.session.drone.isNear,
+    });
+    this.tickContinue(dt);
     view.frame(dt, inRun ? this.session : null);
     this.stage.renderer.render(view.scene, view.rig.camera);
 
@@ -284,6 +319,116 @@ export class App {
     });
   }
 
+  get canOfferContinue(): boolean {
+    return this.session.canRevive;
+  }
+
+  offerContinue(): void {
+    this.continueTimer = revive.offerSec;
+    this.continueScreen.render(revive.maxPerRun - this.session.revives);
+    this.continueScreen.show();
+  }
+
+  showResults(): void {
+    this.finalizeRun();
+    const { save } = services();
+    this.continueScreen.hide();
+    this.gameOver.render({ ...this.lastResult, best: save.data.bestScore });
+    this.gameOver.show();
+  }
+
+  finalizeRun(): void {
+    if (this.runFinalized) return;
+    this.runFinalized = true;
+    this.finishRun();
+  }
+
+  private tickContinue(dt: number): void {
+    if (!this.continueScreen.visible || this.adBusy) return;
+    this.continueTimer -= dt;
+    this.continueScreen.setProgress(this.continueTimer / revive.offerSec);
+    if (this.continueTimer <= 0) this.declineContinue();
+  }
+
+  private watchToContinue(): void {
+    if (this.adBusy || !this.continueScreen.visible || this.machine.current !== 'game-over') return;
+    this.adBusy = true;
+    this.continueScreen.setBusy(true);
+    void services()
+      .ads.showRewarded()
+      .then((rewarded) => {
+        this.adBusy = false;
+        if (this.machine.current !== 'game-over' || !this.continueScreen.visible) return;
+        if (rewarded && this.session.revive()) {
+          this.continueScreen.hide();
+          this.crashHandled = false;
+          this.resumeRun = true;
+          this.machine.go('run');
+          return;
+        }
+        this.continueScreen.setBusy(false);
+        this.continueScreen.showUnavailable();
+        this.continueTimer = Math.max(this.continueTimer, 2.5);
+      });
+  }
+
+  private declineContinue(): void {
+    if (this.adBusy || !this.continueScreen.visible) return;
+    this.showResults();
+  }
+
+  private doubleCoins(): void {
+    if (this.adBusy || !this.gameOver.visible) return;
+    if (this.lastResult.doubled || this.lastResult.coins <= 0) return;
+    this.adBusy = true;
+    this.gameOver.setBusy(true);
+    void services()
+      .ads.showRewarded()
+      .then((rewarded) => {
+        this.adBusy = false;
+        if (rewarded && !this.lastResult.doubled) {
+          const bonus = this.lastResult.coins;
+          services().save.update((data) => {
+            data.coins += bonus;
+          });
+          this.lastResult = { ...this.lastResult, doubled: true, coins: bonus * 2 };
+          this.gameOver.updateCoins(this.lastResult.coins);
+        }
+        const { save } = services();
+        this.gameOver.render({ ...this.lastResult, best: save.data.bestScore });
+      });
+  }
+
+  private backToMenu(): void {
+    if (this.adBusy) return;
+    this.adBusy = true;
+    this.gameOver.setBusy(true);
+    void services()
+      .ads.showInterstitial()
+      .finally(() => {
+        this.adBusy = false;
+        if (this.machine.current === 'game-over') this.machine.go('menu');
+      });
+  }
+
+  private boostedStart(): void {
+    if (this.adBusy || this.machine.current !== 'menu') return;
+    this.adBusy = true;
+    this.menu.setBusy(true);
+    void services()
+      .ads.showRewarded()
+      .then((rewarded) => {
+        this.adBusy = false;
+        if (this.machine.current !== 'menu') return;
+        if (rewarded) {
+          this.boostNextRun = true;
+          this.machine.go('run');
+        } else {
+          this.renderMenu();
+        }
+      });
+  }
+
   private finishRun(): void {
     const { platform, gameplay, ads, save } = services();
     gameplay.stop();
@@ -307,6 +452,7 @@ export class App {
       coins: session.coins,
       missionsDone: result?.completedMissions.length ?? 0,
       multiplierUp: result?.multiplierUp ? result.multiplier : null,
+      doubled: false,
     };
   }
 
@@ -323,6 +469,7 @@ export class App {
       this.liveDone[index] = true;
       const spec = specs[index];
       if (!spec) return;
+      this.sfx.play('mission');
       this.hud.showToast(
         i18n.t('hud.missionDone'),
         i18n.t(`mission.${spec.metric}.${spec.scope}`, { n: spec.target }),

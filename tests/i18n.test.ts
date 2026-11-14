@@ -4,6 +4,9 @@ import { createI18n } from '../src/i18n';
 import en from '../src/i18n/en.json';
 import ru from '../src/i18n/ru.json';
 import tr from '../src/i18n/tr.json';
+import { bonusTypes } from '../src/game/balance';
+import { skinCategories, skins, upgradeKinds } from '../src/game/progression/catalog';
+import { missionSets } from '../src/game/progression/missions';
 
 const dict = { hello: 'Hello, {name}!', onlyEn: 'English only', bye: 'Bye' };
 
@@ -71,5 +74,42 @@ describe('game dictionaries', () => {
     expect(i18n.languages.toSorted()).toEqual(['en', 'ru', 'tr']);
     expect(i18n.setLanguage('tr-TR')).toBe('tr');
     expect(i18n.t('menu.play')).toBe('Sür');
+  });
+});
+
+function placeholders(text: string): string[] {
+  return (text.match(/\{\w+\}/g) ?? []).toSorted();
+}
+
+describe('game strings', () => {
+  const keys = new Set(Object.keys(en));
+
+  it('every mission, skin, upgrade and bonus has a translation', () => {
+    const needed = [
+      ...missionSets.flat().map((m) => `mission.${m.metric}.${m.scope}`),
+      ...skins.map((s) => `skin.${s.id}`),
+      ...skinCategories.map((c) => `skin.category.${c}`),
+      ...upgradeKinds.flatMap((k) => [`upgrade.${k}`, `upgrade.${k}.desc`]),
+      ...bonusTypes.map((b) => `bonus.${b}`),
+    ];
+    expect(needed.filter((key) => !keys.has(key))).toEqual([]);
+  });
+
+  it('no translation is empty and placeholders match en', () => {
+    const problems: string[] = [];
+    for (const [lang, translation] of [
+      ['ru', ru],
+      ['tr', tr],
+    ] as const) {
+      const table: Record<string, string> = translation;
+      for (const [key, value] of Object.entries(en)) {
+        const text = table[key] ?? '';
+        if (!text) problems.push(`${lang}:${key} empty`);
+        if (placeholders(text).join() !== placeholders(value).join()) {
+          problems.push(`${lang}:${key} placeholders`);
+        }
+      }
+    }
+    expect(problems).toEqual([]);
   });
 });

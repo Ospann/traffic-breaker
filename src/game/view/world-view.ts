@@ -217,6 +217,11 @@ export class WorldView {
           this.rig.shake(0.6);
           this.sparks(x, y + 0.6, 50, palette.cyan);
           break;
+        case 'revive':
+          this.crashSpin = 0;
+          this.car.rotation.set(0, 0, 0);
+          this.burstUnder(x, 0, 30, 1.4);
+          break;
         case 'bonusEnd':
         case 'shieldEnd':
         case 'laneChange':

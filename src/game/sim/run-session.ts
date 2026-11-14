@@ -8,6 +8,7 @@ import {
   jumpVelocity,
   score,
   shield as shieldBalance,
+  revive as reviveBalance,
   speedAt,
   superJumpGravity,
   superJumpVelocity,
@@ -34,7 +35,8 @@ export type SessionEvent =
   | { type: 'bonusEnd'; bonus: BonusType }
   | { type: 'shieldOn' }
   | { type: 'shieldSave' }
-  | { type: 'shieldEnd' };
+  | { type: 'shieldEnd' }
+  | { type: 'revive' };
 
 export type SessionState = 'running' | 'crashed' | 'over';
 
@@ -45,6 +47,7 @@ export interface RunConfig {
   shields: number;
   scoreMultiplier: number;
   startWithFullThrust: boolean;
+  startShield: boolean;
 }
 
 export const defaultRunConfig: RunConfig = {
@@ -54,6 +57,7 @@ export const defaultRunConfig: RunConfig = {
   shields: 0,
   scoreMultiplier: 1,
   startWithFullThrust: false,
+  startShield: false,
 };
 
 const normalTuning: MotionTuning = { jumpVelocity, gravity: jumpGravity };
@@ -116,6 +120,7 @@ export class RunSession {
   crashTimer = 0;
   coins = 0;
   coinStreak = 0;
+  revives = 0;
   shields = 0;
   shieldTimer = 0;
   stats: RunStats = emptyStats();
@@ -166,11 +171,35 @@ export class RunSession {
     this.shields = config.shields;
     this.shieldTimer = 0;
     this.onRoof = false;
+    this.revives = 0;
     this.stats = emptyStats();
+    if (config.startShield) {
+      this.shieldTimer = shieldBalance.durationSec;
+      this.events.push({ type: 'shieldOn' });
+    }
     for (const type of bonusTypes) {
       this.bonusTimers[type] = 0;
       this.bonusLengths[type] = bonusDuration(type, config.upgrades[type]);
     }
+  }
+
+  get canRevive(): boolean {
+    return this.state !== 'running' && this.revives < reviveBalance.maxPerRun;
+  }
+
+  revive(): boolean {
+    if (!this.canRevive) return false;
+    this.revives += 1;
+    this.track.clearNear(reviveBalance.clearMeters);
+    this.motion.revive(reviveBalance.invulnSec);
+    this.drone.reset();
+    this.buffer.clear();
+    this.state = 'running';
+    this.crashTimer = 0;
+    this.speed = speedAt(this.elapsed);
+    this.onRoof = false;
+    this.events.push({ type: 'revive' });
+    return true;
   }
 
   queue(action: Action): void {

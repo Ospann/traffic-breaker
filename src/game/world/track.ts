@@ -71,6 +71,16 @@ export class Track {
     this.pickups.reset(seed);
   }
 
+  clearNear(maxD: number): void {
+    for (let i = this.active.length - 1; i >= 0; i -= 1) {
+      const entity = this.active[i];
+      if (entity && entity.d < maxD) {
+        this.release(entity);
+        this.active.splice(i, 1);
+      }
+    }
+  }
+
   clearAhead(fromD: number): void {
     for (let i = this.active.length - 1; i >= 0; i -= 1) {
       const entity = this.active[i];

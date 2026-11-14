@@ -192,6 +192,24 @@ export class PlayerMotion {
     this.events.push('bounce');
   }
 
+  revive(invulnSec: number): void {
+    this.mode = 'ground';
+    this.y = 0;
+    this.vy = 0;
+    this.groundY = 0;
+    this.duckTimer = 0;
+    this.dashTimer = 0;
+    this.slamPending = false;
+    this.onRamp = false;
+    this.gliding = false;
+    this.laneT = 1;
+    this.prevLane = this.lane;
+    this.x = laneX(this.lane);
+    this.laneFromX = this.x;
+    this.invulnTimer = invulnSec;
+    this.events.length = 0;
+  }
+
   grantInvulnerability(sec: number): void {
     this.invulnTimer = Math.max(this.invulnTimer, sec);
   }

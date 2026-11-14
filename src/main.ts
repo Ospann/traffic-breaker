@@ -32,6 +32,9 @@ async function bootstrap(): Promise<void> {
     debounceMs: gameConfig.save.debounceMs,
   });
   const i18n = createI18n();
+  i18n.onChange((language) => {
+    document.documentElement.lang = language;
+  });
   const audio = new AudioEngine();
   const mute = new MuteController((muted) => audio.setMuted(muted));
   audio.installUnlock();

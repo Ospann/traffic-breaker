@@ -98,5 +98,13 @@
   "skin.flame.blue": "Синее",
   "skin.flame.green": "Зелёное",
   "skin.flame.pink": "Розовое",
-  "skin.flame.white": "Белое"
+  "skin.flame.white": "Белое",
+  "continue.title": "Продолжить?",
+  "continue.watch": "Продолжить ▶ реклама",
+  "continue.skip": "Нет, спасибо",
+  "continue.left": "Осталось продолжений: {count}",
+  "ad.unavailable": "Реклама сейчас недоступна",
+  "gameover.doubleCoins": "x2 монеты ▶ реклама",
+  "gameover.coinsDoubled": "Монеты удвоены!",
+  "menu.boostStart": "▶ Старт со щитом и полной тягой"
 }

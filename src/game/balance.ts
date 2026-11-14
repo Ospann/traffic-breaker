@@ -158,3 +158,10 @@ export function thrustChargeSec(level: number): number {
   const clamped = Math.min(Math.max(Math.floor(level), 0), thrustUpgrade.maxLevel);
   return thrust.chargeSec - thrustUpgrade.chargeSecPerLevel * clamped;
 }
+
+export const revive = {
+  maxPerRun: 2,
+  invulnSec: 2.5,
+  clearMeters: 35,
+  offerSec: 6,
+} as const;

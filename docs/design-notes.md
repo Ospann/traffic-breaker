@@ -106,3 +106,29 @@ Contested game-design and technical decisions. Each one can be revisited.
   - a closed targa-style canopy with a dark roof panel;
   - slim headlights and a thin full-width taillight.
     The user asked for the car to look like a Tesla Roadster. The brief (`docs/TASK.md`, section 1) bans copying the body of real brands, especially Tesla, and an unlicensed recognisable silhouette risks rejection or takedown on the portals. So this is a generic modern electric roadster, with no badges and no exact copy of a specific model's lines. An exact copy needs a change to the brief by the user.
+
+## Stage 5
+
+- **"Continue?"**
+  - Shown after the crash animation, at most 2 times per run.
+  - A 6 s timer runs, paused while the ad plays.
+  - If the rewarded ad isn't watched to the end or fails to load, a "not available" message appears and the timer gets 2.5 s added.
+  - On continue: obstacles within the nearest 35 m are removed, the drone falls back, and the car gets 2.5 s of invulnerability on the ground of its current lane.
+  - Coins, record and missions are written only after the final refusal. The platform gets `levelFail` once per run.
+- **x2 coins** — once per run, on the results screen; adds the run's coins to the balance a second time.
+- **"Start with shield + full boost"** — menu button. After the rewarded ad the run starts immediately: the shield is on for its full 12 s (the stock isn't touched) and the boost meter is full.
+- **Interstitial.**
+  - Shown only on the way from results to the menu, via `ads.showInterstitial()`: the AdsManager cooldown is respected, and nothing is shown before the first run finishes.
+  - "Drive again" goes without an ad.
+  - Quitting to the menu from pause also saves the run's result, with no ad.
+- **Sound** (`src/game/audio/sfx.ts`): fully procedural in Web Audio, no files.
+  - Electric motor: a sawtooth hum plus a whine, pitch follows speed.
+  - Cold-gas jets: filtered noise (boost, jump, ramp), plus a continuous hiss during the boost.
+  - Swipe: a noise "whoosh".
+  - Coin: two tones, rising by a semitone per coin in the streak (up to +18).
+  - Light hit and crash: a low thump plus crunch.
+  - Bonuses: an arpeggio unique to each type.
+  - Shield, mission, UI click.
+  - Drone siren: square wave, two tones 700/960 Hz, while the drone is near.
+  - Audio unlocks on the first tap/click/key, including iOS (`touchend`). MuteController suspends the context during ads, pause and when muted.
+- **Localization.** All new strings are in en/ru/tr. A test checks that every mission, skin, upgrade and bonus has a key, and that the placeholders in ru/tr match en. `<html lang>` follows the active language.

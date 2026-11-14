@@ -7,6 +7,7 @@ import styles from './index.module.css';
 
 export interface MenuActions {
   play(): void;
+  boostedStart(): void;
   garage(): void;
   toggleSound(): void;
   nextLanguage(): void;
@@ -29,6 +30,7 @@ export class MenuScreen extends Screen {
   private readonly missions: MissionList;
   private readonly play: HTMLButtonElement;
   private readonly garage: HTMLButtonElement;
+  private readonly boosted: HTMLButtonElement;
   private readonly sound: HTMLButtonElement;
   private readonly language: HTMLButtonElement;
 
@@ -49,6 +51,8 @@ export class MenuScreen extends Screen {
     this.missions = new MissionList(missionBox, i18n);
     const buttons = el('div', cx(styles, 'actions'), this.root);
     this.play = createButton(buttons, 'primary', () => actions.play());
+    this.boosted = createButton(buttons, 'secondary', () => actions.boostedStart());
+    this.boosted.classList.add(cx(styles, 'reward'));
     this.garage = createButton(buttons, 'secondary', () => actions.garage());
     const row = el('div', cx(styles, 'row'), buttons);
     this.sound = createButton(row, 'secondary', () => actions.toggleSound());
@@ -66,6 +70,8 @@ export class MenuScreen extends Screen {
     setText(this.coins, String(data.coins));
     setText(this.play, i18n.t('menu.play'));
     setText(this.garage, i18n.t('menu.garage'));
+    setText(this.boosted, i18n.t('menu.boostStart'));
+    this.setBusy(false);
     setText(this.sound, i18n.t(data.soundEnabled ? 'menu.sound.on' : 'menu.sound.off'));
     setText(
       this.language,
@@ -73,5 +79,11 @@ export class MenuScreen extends Screen {
     );
     setText(this.hint, i18n.t('menu.controls'));
     this.missions.render(data.missions, data.multiplier);
+  }
+
+  setBusy(busy: boolean): void {
+    this.play.disabled = busy;
+    this.boosted.disabled = busy;
+    this.garage.disabled = busy;
   }
 }
