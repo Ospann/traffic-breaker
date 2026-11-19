@@ -8,7 +8,6 @@ import bridge, {
   type RewardedState,
 } from '@playgama/bridge';
 import { Emitter, type Unsubscribe } from '../events';
-import { browserLanguage } from './browser-language';
 import type { LevelInfo, Platform, PlatformStorage } from './types';
 
 type BridgeEvents = { pause: undefined; resume: undefined; audio: boolean };
@@ -126,7 +125,7 @@ export class BridgePlatform implements Platform {
   }
 
   getLanguage(): string {
-    return bridge.platform.language || browserLanguage();
+    return bridge.platform.language || 'en';
   }
 
   isAudioEnabled(): boolean {

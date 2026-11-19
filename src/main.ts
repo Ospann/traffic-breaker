@@ -3,7 +3,7 @@ import { MuteController } from '@core/audio';
 import { GameplayTracker } from '@core/gameplay';
 import { installInputGuards } from '@core/input';
 import { watchPause } from '@core/pause';
-import { createPlatform, LocalStorageStore } from '@core/platform';
+import { createPlatform } from '@core/platform';
 import { flushOnHide, SaveManager } from '@core/save';
 import { createApp } from './game/app/app';
 import { AudioEngine } from './game/audio/audio-engine';
@@ -28,7 +28,6 @@ async function bootstrap(): Promise<void> {
     key: `${gameConfig.id}:${gameConfig.save.key}`,
     schema: saveSchema,
     storage: platform.storage,
-    fallback: new LocalStorageStore(),
     debounceMs: gameConfig.save.debounceMs,
   });
   const i18n = createI18n();
@@ -46,6 +45,9 @@ async function bootstrap(): Promise<void> {
   platform.onAudioChange((enabled) => mute.set('platform', !enabled));
   platform.onPause(() => mute.set('platform-pause', true));
   platform.onResume(() => mute.set('platform-pause', false));
+  const syncHidden = (): void => mute.set('hidden', document.visibilityState === 'hidden');
+  document.addEventListener('visibilitychange', syncHidden);
+  syncHidden();
   flushOnHide(() => save.flush());
 
   const app = createApp(root);

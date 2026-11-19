@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: calc(var(--u) * 100) calc(var(--u) * 40) calc(var(--u) * 50);
+  padding: calc(var(--u) * 130) calc(var(--u) * 40) calc(var(--u) * 44);
   box-sizing: border-box;
   background: linear-gradient(180deg, rgb(9 4 20 / 0.75), rgb(9 4 20 / 0) 45%, rgb(9 4 20 / 0.7));
 }
@@ -70,10 +70,26 @@
   background: radial-gradient(circle at 35% 35%, #fff1b0, #ffc63a 55%, #d98a12);
 }
 
-.missions {
-  width: 100%;
-  max-width: calc(var(--u) * 600);
-  margin-bottom: calc(var(--u) * 28);
+.corner {
+  position: absolute;
+  top: calc(var(--u) * 22);
+  right: calc(var(--u) * 24);
+  display: flex;
+  gap: calc(var(--u) * 14);
+}
+
+.cornerButton {
+  width: calc(var(--u) * 72);
+  height: calc(var(--u) * 72);
+  border-radius: 50%;
+  font-size: calc(var(--u) * 26);
+  letter-spacing: 0;
+}
+
+.play {
+  min-width: calc(var(--u) * 460);
+  padding-block: calc(var(--u) * 28);
+  font-size: calc(var(--u) * 48);
 }
 
 .row {
@@ -81,16 +97,46 @@
   gap: calc(var(--u) * 16);
 }
 
-.small {
-  min-width: calc(var(--u) * 270);
-  padding: calc(var(--u) * 16) calc(var(--u) * 16);
-  font-size: calc(var(--u) * 24);
+.half {
+  min-width: calc(var(--u) * 260);
+  padding: calc(var(--u) * 18) calc(var(--u) * 16);
+  font-size: calc(var(--u) * 26);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--u) * 40);
+  box-sizing: border-box;
+  background: rgb(9 4 20 / 0.72);
+  animation: menuIn 0.2s ease-out;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.card {
+  width: 100%;
+  max-width: calc(var(--u) * 620);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 28);
+  padding: calc(var(--u) * 32) calc(var(--u) * 28);
+  border: calc(var(--u) * 3) solid #8a4dff;
+  border-radius: calc(var(--u) * 22);
+  background: rgb(14 7 30 / 0.95);
+  box-shadow: 0 0 calc(var(--u) * 30) rgb(138 77 255 / 0.4);
 }
 
 .hint {
-  margin-top: calc(var(--u) * 24);
+  margin-top: calc(var(--u) * 22);
   max-width: calc(var(--u) * 560);
-  font-size: calc(var(--u) * 26);
+  font-size: calc(var(--u) * 24);
   text-align: center;
   color: #b9b4d8;
 }

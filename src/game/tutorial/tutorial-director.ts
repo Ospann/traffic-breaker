@@ -19,7 +19,7 @@ export const tutorialSteps: readonly StepSpec[] = [
   { id: 'dash', obstacle: null, triggerD: 0, accept: ['dash'] },
 ];
 
-export const TUTORIAL_SLOWMO = 0.3;
+export const TUTORIAL_TIME_SCALE = 0;
 const DASH_DELAY_SEC = 1.2;
 
 export interface TutorialEvents {
@@ -50,8 +50,9 @@ export class TutorialDirector {
   }
 
   update(dt: number): void {
-    const target = this.active ? TUTORIAL_SLOWMO : 1;
+    const target = this.active ? TUTORIAL_TIME_SCALE : 1;
     this.timeScale += (target - this.timeScale) * Math.min(1, dt * 10);
+    if (Math.abs(target - this.timeScale) < 0.01) this.timeScale = target;
     if (this.finished || this.session.state !== 'running') {
       if (this.active && this.session.state !== 'running') this.complete(false);
       return;
@@ -83,6 +84,11 @@ export class TutorialDirector {
       this.waitTimer = 0;
       this.checkFinished();
     }
+  }
+
+  allows(action: Action): boolean {
+    const step = tutorialSteps[this.index];
+    return !this.active || !step || step.accept.includes(action);
   }
 
   onAction(action: Action): void {

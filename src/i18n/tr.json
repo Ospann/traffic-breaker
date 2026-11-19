@@ -36,6 +36,7 @@
   "menu.garage": "Garaj",
   "menu.multiplier": "Puan ×{n}",
   "menu.missions": "Görevler · set {n}",
+  "menu.missionsButton": "Görevler {done}/{total}",
   "mission.progress": "{value}/{target}",
   "mission.coins.run": "Bir sürüşte {n} jeton topla",
   "mission.coins.total": "{n} jeton topla",

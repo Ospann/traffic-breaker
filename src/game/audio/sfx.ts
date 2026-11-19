@@ -1,4 +1,5 @@
 import type { BonusType } from '../balance';
+import { AudioBank } from './audio-bank';
 import type { AudioEngine } from './audio-engine';
 
 export type SfxName =
@@ -27,138 +28,123 @@ export interface MotorState {
   droneNear: boolean;
 }
 
-interface Loops {
-  hum: OscillatorNode;
-  whine: OscillatorNode;
-  filter: BiquadFilterNode;
-  motorGain: GainNode;
-  jetGain: GainNode;
-  siren: OscillatorNode;
-  sirenGain: GainNode;
+type LoopName = 'engine' | 'jet' | 'siren';
+type SoundKey = SfxName | 'coin' | `bonus.${BonusType}` | LoopName;
+
+interface Loop {
+  source: AudioBufferSourceNode;
+  gain: GainNode;
 }
 
-const BONUS_NOTES: Readonly<Record<BonusType, readonly number[]>> = {
-  fullTank: [392, 523, 659, 784, 1046],
-  magnet: [523, 659, 784, 1046],
-  double: [587, 740, 880, 1175],
-  superJump: [440, 554, 659, 880],
+const FILES: Readonly<Record<SoundKey, string>> = {
+  swipe: 'swipe.mp3',
+  jump: 'jump.mp3',
+  superJump: 'super-jump.mp3',
+  land: 'land.mp3',
+  duck: 'duck.mp3',
+  dash: 'dash.mp3',
+  rampLaunch: 'ramp-launch.mp3',
+  lightHit: 'light-hit.mp3',
+  crash: 'crash.mp3',
+  deco: 'deco.mp3',
+  shieldOn: 'shield-on.mp3',
+  shieldSave: 'shield-save.mp3',
+  shieldEnd: 'shield-end.mp3',
+  bonusEnd: 'bonus-end.mp3',
+  mission: 'mission.mp3',
+  click: 'click.mp3',
+  revive: 'revive.mp3',
+  coin: 'coin.mp3',
+  'bonus.fullTank': 'bonus-full-tank.mp3',
+  'bonus.magnet': 'bonus-magnet.mp3',
+  'bonus.double': 'bonus-double.mp3',
+  'bonus.superJump': 'bonus-super-jump.mp3',
+  engine: 'engine-loop.mp3',
+  jet: 'jet-loop.mp3',
+  siren: 'siren-loop.mp3',
 };
 
+const VOLUME: Readonly<Record<SfxName, number>> = {
+  swipe: 0.45,
+  jump: 0.35,
+  superJump: 0.4,
+  land: 0.45,
+  duck: 0.4,
+  dash: 0.55,
+  rampLaunch: 0.4,
+  lightHit: 0.6,
+  crash: 0.75,
+  deco: 0.35,
+  shieldOn: 0.45,
+  shieldSave: 0.7,
+  shieldEnd: 0.35,
+  bonusEnd: 0.4,
+  mission: 0.5,
+  click: 0.5,
+  revive: 0.55,
+};
+
+const LOOP_REGION: Readonly<Record<LoopName, readonly [number, number]>> = {
+  engine: [0.15, 3.25],
+  jet: [0.15, 2.75],
+  siren: [0.15, 3.16],
+};
+
+const COIN_VOLUME = 0.45;
+const BONUS_VOLUME = 0.5;
+
 export class Sfx {
-  private noise: AudioBuffer | null = null;
-  private loops: Loops | null = null;
-  private time = 0;
+  private readonly bank: AudioBank<SoundKey>;
+  private readonly loops = new Map<LoopName, Loop>();
 
-  constructor(private readonly engine: AudioEngine) {}
+  constructor(private readonly engine: AudioEngine) {
+    this.bank = new AudioBank(engine, FILES);
+  }
 
-  update(dt: number, state: MotorState): void {
-    this.time += dt;
-    const loops = this.ensureLoops();
+  preload(): void {
+    this.bank.preload();
+  }
+
+  update(_dt: number, state: MotorState): void {
     const ctx = this.engine.ctx;
-    if (!loops || !ctx) return;
+    if (!ctx) return;
     const now = ctx.currentTime;
     const speed = state.running ? state.speed : 6;
-    loops.hum.frequency.setTargetAtTime(38 + speed * 2.2, now, 0.1);
-    loops.whine.frequency.setTargetAtTime(180 + speed * 22 + (state.dashing ? 260 : 0), now, 0.12);
-    loops.filter.frequency.setTargetAtTime(300 + speed * 35, now, 0.1);
-    loops.motorGain.gain.setTargetAtTime(state.running ? 0.05 : 0.02, now, 0.2);
-    loops.jetGain.gain.setTargetAtTime(state.running && state.dashing ? 0.16 : 0, now, 0.08);
-    const high = Math.floor(this.time * 2.8) % 2 === 0;
-    loops.siren.frequency.setTargetAtTime(high ? 960 : 700, now, 0.02);
-    loops.sirenGain.gain.setTargetAtTime(state.running && state.droneNear ? 0.035 : 0, now, 0.1);
+    const engine = this.loop('engine');
+    if (engine) {
+      engine.source.playbackRate.setTargetAtTime(
+        0.7 + speed * 0.018 + (state.dashing ? 0.2 : 0),
+        now,
+        0.15,
+      );
+      engine.gain.gain.setTargetAtTime(state.running ? 0.14 : 0.05, now, 0.2);
+    }
+    const jet = this.loop('jet');
+    if (jet) jet.gain.gain.setTargetAtTime(state.running && state.dashing ? 0.3 : 0, now, 0.08);
+    const siren = this.loop('siren');
+    if (siren) {
+      siren.gain.gain.setTargetAtTime(state.running && state.droneNear ? 0.4 : 0, now, 0.1);
+    }
   }
 
   silenceLoops(): void {
     const ctx = this.engine.ctx;
-    const loops = this.loops;
-    if (!ctx || !loops) return;
+    if (!ctx) return;
     const now = ctx.currentTime;
-    loops.motorGain.gain.setTargetAtTime(0, now, 0.05);
-    loops.jetGain.gain.setTargetAtTime(0, now, 0.05);
-    loops.sirenGain.gain.setTargetAtTime(0, now, 0.05);
+    for (const loop of this.loops.values()) loop.gain.gain.setTargetAtTime(0, now, 0.05);
   }
 
   coin(streak: number): void {
-    const semis = Math.min(Math.max(streak - 1, 0), 18);
-    const base = 988 * 2 ** (semis / 12);
-    this.tone(base, 0.07, 'triangle', 0.09);
-    this.tone(base * 1.5, 0.09, 'sine', 0.06, undefined, 0.035);
+    const semis = Math.min(Math.max(streak - 1, 0), 12);
+    this.shot('coin', COIN_VOLUME, 2 ** (semis / 12));
   }
 
   bonus(type: BonusType): void {
-    BONUS_NOTES[type].forEach((note, i) =>
-      this.tone(note, 0.1, 'square', 0.05, undefined, i * 0.06),
-    );
+    this.shot(`bonus.${type}`, BONUS_VOLUME);
   }
 
   play(name: SfxName): void {
-    switch (name) {
-      case 'swipe':
-        this.hiss(0.12, 0.07, 'bandpass', 900, 2600, 1.2);
-        return;
-      case 'jump':
-        this.hiss(0.28, 0.16, 'highpass', 2600, 1200, 0.7);
-        this.tone(260, 0.18, 'sine', 0.05, 520);
-        return;
-      case 'superJump':
-        this.hiss(0.4, 0.2, 'highpass', 3000, 900, 0.7);
-        this.tone(220, 0.3, 'sine', 0.07, 660);
-        return;
-      case 'land':
-        this.tone(130, 0.12, 'sine', 0.12, 50);
-        this.hiss(0.07, 0.06, 'lowpass', 900, 300, 0.7);
-        return;
-      case 'duck':
-        this.hiss(0.1, 0.05, 'bandpass', 600, 300, 1);
-        return;
-      case 'dash':
-        this.hiss(0.9, 0.24, 'bandpass', 2400, 700, 0.6);
-        this.tone(70, 0.6, 'sine', 0.12, 40);
-        return;
-      case 'rampLaunch':
-        this.hiss(0.35, 0.14, 'highpass', 2200, 1000, 0.7);
-        this.tone(300, 0.25, 'triangle', 0.05, 700);
-        return;
-      case 'lightHit':
-        this.tone(160, 0.14, 'sine', 0.16, 60);
-        this.hiss(0.15, 0.12, 'bandpass', 1400, 500, 1.5);
-        this.tone(1900, 0.08, 'square', 0.03);
-        return;
-      case 'crash':
-        this.tone(110, 0.5, 'sawtooth', 0.12, 35);
-        this.hiss(0.7, 0.25, 'lowpass', 3000, 200, 0.8);
-        this.hiss(0.25, 0.08, 'highpass', 5000, 3000, 0.7, 0.05);
-        return;
-      case 'deco':
-        this.tone(1400, 0.05, 'square', 0.025, 700);
-        return;
-      case 'shieldOn':
-        this.tone(400, 0.4, 'sine', 0.07, 1300);
-        this.tone(800, 0.4, 'triangle', 0.03, 2000, 0.05);
-        return;
-      case 'shieldSave':
-        this.tone(1300, 0.3, 'sawtooth', 0.06, 180);
-        this.hiss(0.2, 0.1, 'bandpass', 2000, 800, 1);
-        return;
-      case 'shieldEnd':
-      case 'bonusEnd':
-        this.tone(660, 0.08, 'triangle', 0.04);
-        this.tone(440, 0.1, 'triangle', 0.04, undefined, 0.08);
-        return;
-      case 'mission':
-        this.tone(784, 0.12, 'triangle', 0.07);
-        this.tone(1175, 0.2, 'triangle', 0.07, undefined, 0.1);
-        return;
-      case 'click':
-        this.tone(1200, 0.03, 'square', 0.03);
-        return;
-      case 'revive':
-        [523, 659, 784].forEach((note, i) =>
-          this.tone(note, 0.12, 'triangle', 0.06, undefined, i * 0.08),
-        );
-        this.hiss(0.6, 0.12, 'highpass', 1500, 3000, 0.7);
-        return;
-    }
+    this.shot(name, VOLUME[name]);
   }
 
   private context(): { ctx: AudioContext; out: AudioNode } | null {
@@ -168,115 +154,39 @@ export class Sfx {
     return { ctx, out };
   }
 
-  private noiseBuffer(ctx: AudioContext): AudioBuffer {
-    if (this.noise) return this.noise;
-    const buffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
-    this.noise = buffer;
-    return buffer;
-  }
-
-  private tone(
-    freq: number,
-    duration: number,
-    type: OscillatorType,
-    volume: number,
-    freqEnd?: number,
-    delay = 0,
-  ): void {
+  private shot(key: SoundKey, volume: number, rate = 1): void {
     const c = this.context();
-    if (!c) return;
+    const buffer = this.bank.get(key);
+    if (!c || !buffer) return;
     const { ctx, out } = c;
-    const t0 = ctx.currentTime + delay;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, t0);
-    if (freqEnd !== undefined) osc.frequency.exponentialRampToValueAtTime(freqEnd, t0 + duration);
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    osc.connect(gain).connect(out);
-    osc.start(t0);
-    osc.stop(t0 + duration + 0.02);
-  }
-
-  private hiss(
-    duration: number,
-    volume: number,
-    filterType: BiquadFilterType,
-    from: number,
-    to: number,
-    q: number,
-    delay = 0,
-  ): void {
-    const c = this.context();
-    if (!c) return;
-    const { ctx, out } = c;
-    const t0 = ctx.currentTime + delay;
     const source = ctx.createBufferSource();
-    source.buffer = this.noiseBuffer(ctx);
-    source.loop = true;
-    const filter = ctx.createBiquadFilter();
-    filter.type = filterType;
-    filter.Q.value = q;
-    filter.frequency.setValueAtTime(from, t0);
-    filter.frequency.exponentialRampToValueAtTime(to, t0 + duration);
+    source.buffer = buffer;
+    source.playbackRate.value = rate;
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(volume, t0 + Math.min(0.02, duration / 4));
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    source.connect(filter).connect(gain).connect(out);
-    source.start(t0, Math.random() * 0.5);
-    source.stop(t0 + duration + 0.02);
+    gain.gain.value = volume;
+    source.connect(gain).connect(out);
+    source.start();
   }
 
-  private ensureLoops(): Loops | null {
-    if (this.loops) return this.loops;
+  private loop(name: LoopName): Loop | null {
+    const existing = this.loops.get(name);
+    if (existing) return existing;
     const c = this.context();
-    if (!c) return null;
+    const buffer = this.bank.get(name);
+    if (!c || !buffer) return null;
     const { ctx, out } = c;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 500;
-    const motorGain = ctx.createGain();
-    motorGain.gain.value = 0;
-    const hum = ctx.createOscillator();
-    hum.type = 'sawtooth';
-    const whine = ctx.createOscillator();
-    whine.type = 'sine';
-    const whineGain = ctx.createGain();
-    whineGain.gain.value = 0.35;
-    hum.connect(filter);
-    whine.connect(whineGain).connect(filter);
-    filter.connect(motorGain).connect(out);
-
-    const jet = ctx.createBufferSource();
-    jet.buffer = this.noiseBuffer(ctx);
-    jet.loop = true;
-    const jetFilter = ctx.createBiquadFilter();
-    jetFilter.type = 'bandpass';
-    jetFilter.frequency.value = 1800;
-    jetFilter.Q.value = 0.5;
-    const jetGain = ctx.createGain();
-    jetGain.gain.value = 0;
-    jet.connect(jetFilter).connect(jetGain).connect(out);
-
-    const siren = ctx.createOscillator();
-    siren.type = 'square';
-    const sirenFilter = ctx.createBiquadFilter();
-    sirenFilter.type = 'lowpass';
-    sirenFilter.frequency.value = 1600;
-    const sirenGain = ctx.createGain();
-    sirenGain.gain.value = 0;
-    siren.connect(sirenFilter).connect(sirenGain).connect(out);
-
-    hum.start();
-    whine.start();
-    jet.start();
-    siren.start();
-    this.loops = { hum, whine, filter, motorGain, jetGain, siren, sirenGain };
-    return this.loops;
+    const [start, end] = LOOP_REGION[name];
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.loopStart = start;
+    source.loopEnd = Math.min(end, buffer.duration);
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    source.connect(gain).connect(out);
+    source.start(0, start);
+    const loop = { source, gain };
+    this.loops.set(name, loop);
+    return loop;
   }
 }

@@ -36,6 +36,7 @@
   "menu.garage": "Гараж",
   "menu.multiplier": "Очки ×{n}",
   "menu.missions": "Миссии · набор {n}",
+  "menu.missionsButton": "Миссии {done}/{total}",
   "mission.progress": "{value}/{target}",
   "mission.coins.run": "Собери {n} монет за забег",
   "mission.coins.total": "Собери {n} монет",

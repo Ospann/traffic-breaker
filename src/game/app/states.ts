@@ -61,6 +61,7 @@ export function registerStates(app: App): void {
         app.view?.reset();
         app.view?.setMode('menu', null);
         app.renderMenu();
+        app.music.play('menu');
         app.menu.show();
         app.loop.start();
       },
@@ -77,6 +78,7 @@ export function registerStates(app: App): void {
         }
         app.hud.refreshTexts();
         app.hud.show();
+        app.music.play('run');
         gameplay.start();
         app.loop.start();
       },
@@ -101,6 +103,7 @@ export function registerStates(app: App): void {
     })
     .register('game-over', {
       enter: () => {
+        app.music.play('menu');
         if (app.canOfferContinue) app.offerContinue();
         else app.showResults();
       },
@@ -113,6 +116,7 @@ export function registerStates(app: App): void {
       enter: () => {
         app.view?.setMode('garage', null);
         app.renderGarage();
+        app.music.play('menu');
         app.garage.show();
         app.loop.start();
       },

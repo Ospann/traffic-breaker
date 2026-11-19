@@ -36,6 +36,7 @@
   "menu.garage": "Garage",
   "menu.multiplier": "Score ×{n}",
   "menu.missions": "Missions · set {n}",
+  "menu.missionsButton": "Missions {done}/{total}",
   "mission.progress": "{value}/{target}",
   "mission.coins.run": "Collect {n} coins in one run",
   "mission.coins.total": "Collect {n} coins",

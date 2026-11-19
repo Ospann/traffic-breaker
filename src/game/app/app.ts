@@ -8,6 +8,7 @@ import { patterns } from '../patterns';
 import { services } from '../services';
 import type { CarKit } from '../art/breaker-car';
 import { playSessionSounds } from '../audio/session-sounds';
+import { Music } from '../audio/music';
 import { Sfx } from '../audio/sfx';
 import { bonusTypes, revive, type BonusType } from '../balance';
 import { findSkin } from '../progression/catalog';
@@ -89,6 +90,7 @@ export class App {
   };
   readonly continueScreen: ContinueScreen;
   readonly sfx: Sfx;
+  readonly music: Music;
   resumeRun = false;
   continueTimer = 0;
   private boostNextRun = false;
@@ -107,6 +109,8 @@ export class App {
   constructor(root: HTMLElement) {
     const { i18n, audio } = services();
     this.sfx = new Sfx(audio);
+    this.sfx.preload();
+    this.music = new Music(audio);
     this.stage = new Stage(root);
     const ui = this.stage.ui;
     ui.addEventListener('click', (event) => {
@@ -181,7 +185,7 @@ export class App {
         const bonus = DEBUG_BONUS_KEYS[code];
         if (this.debug && bonus && this.machine.current === 'run')
           this.session.activateBonus(bonus);
-        if (code === 'Escape' || code === 'KeyP') this.pause();
+        if (code === 'KeyP') this.pause();
       },
     );
 
@@ -290,6 +294,7 @@ export class App {
 
   private input(action: Action): void {
     if (this.machine.current !== 'run') return;
+    if (this.tutorial && !this.tutorial.allows(action)) return;
     this.tutorial?.onAction(action);
     this.session.queue(action);
   }

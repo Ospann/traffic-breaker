@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { patterns } from '../src/game/patterns';
 import { RunSession } from '../src/game/sim/run-session';
 import {
-  TUTORIAL_SLOWMO,
+  TUTORIAL_TIME_SCALE,
   TutorialDirector,
   type TutorialStepId,
 } from '../src/game/tutorial/tutorial-director';
@@ -41,14 +41,14 @@ function setup() {
 }
 
 describe('tutorial', () => {
-  it('walks through lane, jump, duck and boost hints with slow motion and finishes', () => {
+  it('walks through lane, jump, duck and boost hints, freezing time on each, and finishes', () => {
     const { session, director, log, isFinished } = setup();
     let minScale = 1;
     for (let t = 0; t < 40 && !isFinished() && session.state === 'running'; t += DT) {
       director.update(DT);
       minScale = Math.min(minScale, director.timeScale);
       const step = director.current;
-      if (step && director.timeScale < TUTORIAL_SLOWMO + 0.05) {
+      if (step && director.timeScale === TUTORIAL_TIME_SCALE) {
         session.queue(answers[step]);
         director.onAction(answers[step]);
       }
@@ -66,7 +66,49 @@ describe('tutorial', () => {
       'ok',
     ]);
     expect(isFinished()).toBe(true);
-    expect(minScale).toBeLessThan(TUTORIAL_SLOWMO + 0.1);
+    expect(minScale).toBe(TUTORIAL_TIME_SCALE);
+  });
+
+  it('waits for the player on every hint instead of letting the car crash', () => {
+    const { session, director, log, isFinished } = setup();
+    const waited: string[] = [];
+    for (let t = 0; t < 120 && !isFinished() && session.state === 'running'; t += DT) {
+      director.update(DT);
+      const step = director.current;
+      if (step && director.timeScale === TUTORIAL_TIME_SCALE) {
+        for (let idle = 0; idle < 30; idle += DT) {
+          director.update(DT);
+          session.step(DT * director.timeScale);
+        }
+        waited.push(`${step}:${session.state}:${director.current}`);
+        session.queue(answers[step]);
+        director.onAction(answers[step]);
+      }
+      session.step(DT * director.timeScale);
+    }
+    expect(session.state).toBe('running');
+    expect(log.filter((e) => e === 'ok')).toHaveLength(4);
+    expect(waited).toEqual([
+      'lane:running:lane',
+      'jump:running:jump',
+      'duck:running:duck',
+      'dash:running:dash',
+    ]);
+    expect(isFinished()).toBe(true);
+  });
+
+  it('blocks gestures the current hint does not ask for', () => {
+    const { session, director } = setup();
+    for (let t = 0; t < 10 && director.current === null; t += DT) {
+      director.update(DT);
+      session.step(DT);
+    }
+    expect(director.current).toBe('lane');
+    expect(director.allows('up')).toBe(false);
+    expect(director.allows('dash')).toBe(false);
+    expect(director.allows('left')).toBe(true);
+    director.onAction('left');
+    expect(director.allows('up')).toBe(true);
   });
 
   it('wrong gestures do not dismiss a hint', () => {
